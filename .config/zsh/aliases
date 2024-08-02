@@ -1,0 +1,21 @@
+#!/bin/sh
+
+alias v="nvim"
+alias vim="nvim"
+
+# LS aliases
+alias ll="ls -l"
+alias la="ls -a"
+alias lla="ls -la"
+
+
+# Git aliases
+alias g="git"
+alias ga="git add ."
+alias gco="git commit -m"
+alias gst="git status"
+alias gps="git push origin"
+alias gpl="git pull origin"
+alias gf="git fetch origin"
+alias gck="git checkout"
+alias gr="git reset --hard"
