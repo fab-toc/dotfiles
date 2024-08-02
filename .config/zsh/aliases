@@ -2,11 +2,13 @@
 
 alias v="nvim"
 alias vim="nvim"
+alias c="clear"
 
 # LS aliases
-alias ll="ls -l"
-alias la="ls -a"
-alias lla="ls -la"
+alias ls="eza --icons"
+alias ll="eza --icons -l"
+alias la="eza --icons -a"
+alias lla="eza --icons -la"
 
 
 # Git aliases
