@@ -13,7 +13,8 @@ alias lla="eza --icons -la"
 
 # Git aliases
 alias g="git"
-alias ga="git add ."
+alias ga="git add"
+alias gaa="git add ."
 alias gco="git commit -m"
 alias gst="git status"
 alias gps="git push origin"
@@ -21,3 +22,6 @@ alias gpl="git pull origin"
 alias gf="git fetch origin"
 alias gck="git checkout"
 alias gr="git reset --hard"
+
+# PNPM
+alias p="pnpm"
