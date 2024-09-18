@@ -13,7 +13,7 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # Source ZSH Files
-source "$ZDOTDIR/aliases"
+source "$ZDOTDIR/aliases.sh"
 
 # Add in zsh plugins
 zinit light zsh-users/zsh-syntax-highlighting
