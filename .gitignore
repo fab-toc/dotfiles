@@ -1,3 +1,4 @@
 /.config/nvm
 .config/zsh/.zsh_history
 /.config/.android
+.config/zsh/.zcompdump
