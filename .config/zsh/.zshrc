@@ -47,14 +47,14 @@ setopt hist_find_no_dups
 
 # Setup fzf
 # ---------
-if [[ ! "$PATH" == */home/ftocco/.fzf/bin* ]]; then
-  PATH="${PATH:+${PATH}:}/home/ftocco/.fzf/bin"
+if [[ ! "$PATH" == *${HOME}/.fzf/bin* ]]; then
+  PATH="${PATH:+${PATH}:}${HOME}/.fzf/bin"
 fi
 
 source <(fzf --zsh)
 
 # pnpm
-export PNPM_HOME="/home/ftocco/.local/share/pnpm"
+export PNPM_HOME="${HOME}/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
