@@ -9,6 +9,7 @@ Just use the auto-install script :
 sudo apt install git
 cd ~
 git clone https://github.com/fab-toc/dotfiles.git
+sudo chmod +x dotfiles/install.sh
 ./dotfiles/install.sh
 ```
 
