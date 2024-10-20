@@ -67,3 +67,6 @@ export NVM_DIR="$HOME/.config/nvm"
 
 # Enable Starship
 eval "$(starship init zsh)"
+
+# Enable Homebrew
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
