@@ -1,5 +1,7 @@
 # My dotfiles
 
+# NEED TO ADD ZOXIDE INSTALLATION TO SCRIPT
+
 This directory contains the dotfiles of my system.
 
 # How to install
