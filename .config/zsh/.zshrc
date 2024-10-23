@@ -45,6 +45,11 @@ setopt hist_find_no_dups
 
 # Shell integrations
 
+# Add zoxide to the PATH
+if [[ ! "$PATH" == *${HOME}/.local/bin* ]]; then
+  PATH="${PATH:+${PATH}:}${HOME}/.local/bin"
+fi
+
 # Setup fzf
 # ---------
 if [[ ! "$PATH" == *${HOME}/.fzf/bin* ]]; then
