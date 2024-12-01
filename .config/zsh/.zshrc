@@ -78,3 +78,5 @@ eval "$(zoxide init zsh)"
 
 # Enable Homebrew
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+eval "$(uv generate-shell-completion zsh)"
+eval "$(uvx --generate-shell-completion zsh)"
