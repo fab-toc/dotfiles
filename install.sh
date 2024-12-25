@@ -40,6 +40,11 @@ if ask "Do you want to install fzf ?"; then
   ~/.fzf/install # follow the installation script but do NOT append to configuration
 fi
 
+# Install zoxide
+if ask "Do you want to install zoxide ?"; then
+  curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+fi
+
 # Install uv
 if ask "Do you want to install uv for Python ?"; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
