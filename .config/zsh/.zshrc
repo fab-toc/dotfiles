@@ -85,7 +85,7 @@ eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 
 # Enable Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # replace this with the homebrew eval activation if you are on macOS
 
 # Enable UV for Python and shell completions
 eval "$(uv generate-shell-completion zsh)"
