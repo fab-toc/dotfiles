@@ -55,6 +55,9 @@ setopt hist_find_no_dups
 
 ##### Shell integrations
 
+# Enable Homebrew
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # on Linux
+# eval "$(/opt/homebrew/bin/brew shellenv)" # on macOS
 
 # Setup zoxide (add zoxide to the PATH)
 if [[ ! "$PATH" == *${HOME}/.local/bin* ]]; then
@@ -83,9 +86,6 @@ eval "$(starship init zsh)"
 
 # Enable Zoxide
 eval "$(zoxide init zsh)"
-
-# Enable Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # replace this with the homebrew eval activation if you are on macOS
 
 # Enable UV for Python and shell completions
 eval "$(uv generate-shell-completion zsh)"
