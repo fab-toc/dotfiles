@@ -64,15 +64,16 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # on Linux
 #   PATH="${PATH:+${PATH}:}/opt/homebrew/Cellar/bat"
 # fi
 
-# Setup zoxide (add zoxide to the PATH)
+# Setup zoxide (add zoxide to the PATH) (not necessary on macOS)
 if [[ ! "$PATH" == *${HOME}/.local/bin* ]]; then
   PATH="${PATH:+${PATH}:}${HOME}/.local/bin"
 fi
 
-# Setup fzf (add fzf to the PATH)
+# Setup fzf (add fzf to the PATH) (not necessary on macOS)
 if [[ ! "$PATH" == *${HOME}/.fzf/bin* ]]; then
   PATH="${PATH:+${PATH}:}${HOME}/.fzf/bin"
 fi
+
 source <(fzf --zsh)
 
 # Setup pnpm

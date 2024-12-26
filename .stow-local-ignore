@@ -1,5 +1,5 @@
 install.sh
-macOS-install.sh
+brew-install.sh
 README.md
 .gitignore
 /.git

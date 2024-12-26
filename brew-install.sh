@@ -14,7 +14,7 @@ ask() {
 
 
 # Install all the packages needed
-brew install curl stow neovim bat eza starship fzf
+brew install stow neovim bat eza starship fzf
 
 starship preset no-runtime-versions -o ~/.config/starship.toml # apply starship preset
 

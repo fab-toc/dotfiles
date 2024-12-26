@@ -7,7 +7,6 @@ This directory contains the dotfiles of my system.
 Just use the auto-install script :
 
 ```
-sudo apt install git
 cd ~
 git clone https://github.com/fab-toc/dotfiles.git
 sudo chmod +x dotfiles/install.sh
