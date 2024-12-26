@@ -59,6 +59,11 @@ setopt hist_find_no_dups
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # on Linux
 # eval "$(/opt/homebrew/bin/brew shellenv)" # on macOS
 
+# # Setup bat on macOS (add bat to the PATH)
+# if [[ ! "$PATH" == */opt/homebrew/Cellar/bat* ]]; then
+#   PATH="${PATH:+${PATH}:}/opt/homebrew/Cellar/bat"
+# fi
+
 # Setup zoxide (add zoxide to the PATH)
 if [[ ! "$PATH" == *${HOME}/.local/bin* ]]; then
   PATH="${PATH:+${PATH}:}${HOME}/.local/bin"
