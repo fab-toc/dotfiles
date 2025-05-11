@@ -28,4 +28,4 @@ alias gck="git checkout"
 alias gr="git reset --hard"
 
 # PNPM
-alias p="pnpm"
+alias pn="pnpm"
