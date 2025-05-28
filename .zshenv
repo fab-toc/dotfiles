@@ -10,4 +10,4 @@ export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
 # Android
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export ANDROID_HOME=$ANDROID_SDK_ROOT
-export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platforms:$XDG_BIN_HOME
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platforms:$ANDROID_HOME/build-tools:$XDG_BIN_HOME
