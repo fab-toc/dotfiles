@@ -3,8 +3,7 @@
 alias v="nvim"
 alias vim="nvim"
 alias c="clear"
-alias bat="batcat"
-alias cat="batcat"
+alias cat="bat"
 
 # LS aliases
 alias ls="eza --icons"

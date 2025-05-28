@@ -23,7 +23,6 @@ zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 
 
-
 ### ZSH Configuration
 
 # Source ZSH Files
@@ -52,29 +51,11 @@ setopt hist_ignore_dups
 setopt hist_find_no_dups
 
 
-
 ##### Shell integrations
 
-# Enable Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" # on Linux
-# eval "$(/opt/homebrew/bin/brew shellenv)" # on macOS
-
-# # Setup bat on macOS (add bat to the PATH)
-# if [[ ! "$PATH" == */opt/homebrew/Cellar/bat* ]]; then
-#   PATH="${PATH:+${PATH}:}/opt/homebrew/Cellar/bat"
-# fi
-
-# Setup zoxide (add zoxide to the PATH) (not necessary on macOS)
-if [[ ! "$PATH" == *${HOME}/.local/bin* ]]; then
-  PATH="${PATH:+${PATH}:}${HOME}/.local/bin"
-fi
-
-# Setup fzf (add fzf to the PATH) (not necessary on macOS)
-if [[ ! "$PATH" == *${HOME}/.fzf/bin* ]]; then
-  PATH="${PATH:+${PATH}:}${HOME}/.fzf/bin"
-fi
-
-source <(fzf --zsh)
+# Load NVM (Node Version Manager)
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # Setup pnpm
 export PNPM_HOME="${HOME}/.local/share/pnpm"
@@ -83,16 +64,15 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
-# Setup NVM
-export NVM_DIR="$HOME/.config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# Enable UV for Python and shell completions
+eval "$(uv generate-shell-completion zsh)"
+eval "$(uvx --generate-shell-completion zsh)"
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
 
 # Enable Starship
 eval "$(starship init zsh)"
 
 # Enable Zoxide
 eval "$(zoxide init zsh)"
-
-# Enable UV for Python and shell completions
-eval "$(uv generate-shell-completion zsh)"
-eval "$(uvx --generate-shell-completion zsh)"

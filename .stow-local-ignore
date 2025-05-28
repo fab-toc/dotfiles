@@ -1,5 +1,6 @@
-install.sh
-brew-install.sh
-README.md
+.git/
 .gitignore
-/.git
+
+install.sh
+README.md
+
