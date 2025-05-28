@@ -1,0 +1,12 @@
+[init]
+	defaultBranch = main
+[gpg]
+	format = ssh
+[user]
+	signingkey = "${HOME}/.ssh/github_signing_key.pub"
+	email = 81991643+fab-toc@users.noreply.github.com
+	name = fab-toc
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
