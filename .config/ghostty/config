@@ -44,3 +44,5 @@
 
 
 theme = dark:GitHub-Dark-Dimmed,light:GitHub-Light-Default
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
