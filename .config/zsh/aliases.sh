@@ -28,3 +28,4 @@ alias gr="git reset --hard"
 
 # PNPM
 alias pn="pnpm"
+alias px="pnpx"
