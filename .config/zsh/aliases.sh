@@ -11,9 +11,6 @@ alias ll="eza --icons -l"
 alias la="eza --icons -a"
 alias lla="eza --icons -la"
 
-# CD alias
-alias cd="z"
-
 # Git aliases
 alias g="git"
 alias ga="git add"
