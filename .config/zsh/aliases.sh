@@ -2,8 +2,11 @@
 
 alias v="nvim"
 alias vim="nvim"
+
 alias c="clear"
+
 alias cat="bat"
+alias cd="z"
 
 # LS aliases
 alias ls="eza --icons"
