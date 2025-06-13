@@ -8,6 +8,9 @@ alias c="clear"
 alias cat="bat"
 alias cd="z"
 
+# systemd aliases
+alias start="sudo systemctl start"
+
 # LS aliases
 alias ls="eza --icons"
 alias ll="eza --icons -l"
