@@ -74,6 +74,9 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
+# Setup bun
+export PATH=$PATH:$HOME/.cache/.bun/bin # executables for global packages
+
 # Enable UV for Python and shell completions
 eval "$(uv generate-shell-completion zsh)"
 eval "$(uvx --generate-shell-completion zsh)"
