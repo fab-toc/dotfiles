@@ -32,3 +32,6 @@ alias gr="git reset --hard"
 # PNPM
 alias pn="pnpm"
 alias px="pnpx"
+
+# fastfetch
+alias ff="fastfetch"
