@@ -29,6 +29,9 @@ alias gf="git fetch origin"
 alias gck="git checkout"
 alias gr="git reset --hard"
 
+# GitHub
+alias gh-create="gh repo create --private --source=. --remote=origin && git push -u --all && gh browse"
+
 # PNPM
 alias pn="pnpm"
 alias px="pnpx"
