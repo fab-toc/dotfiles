@@ -3,8 +3,26 @@
   email = 81991643+fab-toc@users.noreply.github.com
   signingkey = ~/.ssh/github_signing_key.pub
 
+[core]
+  compression = 9
+  preloadindex = true
+
 [init]
   defaultBranch = main
+
+[status]
+  showStash = true
+
+[diff]
+  context = 3
+  renames = copies
+  interHunkContext = 10
+
+[pager]
+  diff = diff-so-fancy | $PAGER
+
+[diff-so-fancy]
+  markEmptyLines = false
 
 [gpg]
   format = ssh

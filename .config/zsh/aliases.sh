@@ -30,7 +30,6 @@ alias gi="git init"
 alias gcl="git clone"
 
 alias gs="git status --short"
-
 alias ga="git add"
 alias gaa="git add ."
 alias gc="git commit"
@@ -38,6 +37,7 @@ alias gc="git commit"
 alias gl="git log"
 alias gb="git branch"
 alias gco="git checkout"
+alias gd="git diff --output-indicator-new=' ' --output-indicator-old=' '"
 
 alias gf="git fetch"
 alias gp="git push"
