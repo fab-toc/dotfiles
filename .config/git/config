@@ -1,7 +1,7 @@
 [user]
-  signingkey = /home/fabio/.ssh/github_signing_key.pub
   name = fab-toc
   email = 81991643+fab-toc@users.noreply.github.com
+  signingkey = ~/.ssh/github_signing_key.pub
 
 [init]
   defaultBranch = main
