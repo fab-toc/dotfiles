@@ -1,0 +1,25 @@
+[user]
+  signingkey = /home/fabio/.ssh/github_signing_key.pub
+  name = fab-toc
+  email = 81991643+fab-toc@users.noreply.github.com
+
+[init]
+  defaultBranch = main
+
+[gpg]
+  format = ssh
+
+[commit]
+  gpgsign = true
+
+[tag]
+  gpgsign = true
+
+[url "git@github.com:"]
+  insteadOf = "gh:"
+
+[url "git@github.com:fab-toc/"]
+  insteadOf = "me:"
+
+[url "git@github.com:info-telecom-strasbourg/"]
+  insteadOf = "its:"

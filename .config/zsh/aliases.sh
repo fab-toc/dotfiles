@@ -1,40 +1,53 @@
 #!/bin/sh
 
-alias v="nvim"
-alias vim="nvim"
-
+# classic shell commands
+alias cd="z"
+alias cat="bat"
 alias c="clear"
 
-alias cat="bat"
-alias cd="z"
+alias ls="eza --icons"
+alias ll="ls -l"
+alias la="ls -a"
+alias lla="ls -la"
 
-# systemd aliases
+
+# neovim
+alias v="nvim"
+
+
+# fastfetch
+alias ff="fastfetch"
+
+
+# systemd
 alias start="sudo systemctl start"
 
-# LS aliases
-alias ls="eza --icons"
-alias ll="eza --icons -l"
-alias la="eza --icons -a"
-alias lla="eza --icons -la"
 
-# Git aliases
+# git
 alias g="git"
+
+alias gi="git init"
+alias gcl="git clone"
+
+alias gs="git status --short"
+
 alias ga="git add"
 alias gaa="git add ."
-alias gco="git commit -m"
-alias gst="git status"
-alias gps="git push origin"
-alias gpl="git pull origin"
-alias gf="git fetch origin"
-alias gck="git checkout"
-alias gr="git reset --hard"
+alias gc="git commit"
+
+alias gl="git log"
+alias gb="git branch"
+alias gco="git checkout"
+
+alias gf="git fetch"
+alias gp="git push"
+alias gu="git pull"
+
 
 # GitHub
 alias gh-create="gh repo create --private --source=. --remote=origin && git push -u --all && gh browse"
 
-# PNPM
+
+# pnpm
 alias pn="pnpm"
 alias px="pnpx"
-
-# fastfetch
-alias ff="fastfetch"
