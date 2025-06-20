@@ -13,6 +13,16 @@
 [status]
   showStash = true
 
+[push]
+  autoSetupRemote = true
+  default = current
+
+[pull]
+  default = current
+
+[log]
+  abbrevCommit = true
+
 [diff]
   context = 3
   renames = copies
@@ -20,6 +30,10 @@
 
 [pager]
   diff = diff-so-fancy | $PAGER
+
+[interactive]
+  diffFilter = diff-so-fancy --patch
+  singlekey = true
 
 [diff-so-fancy]
   markEmptyLines = false
