@@ -1,5 +1,7 @@
 export ZDOTDIR=$HOME/.config/zsh
 
+export EDITOR="code --wait"
+export VISUAL="$EDITOR"
 export PAGER="less"
 
 # XDG

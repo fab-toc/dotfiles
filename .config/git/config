@@ -4,6 +4,7 @@
   signingkey = ~/.ssh/github_signing_key.pub
 
 [core]
+  editor = code --wait
   compression = 9
   preloadindex = true
 
