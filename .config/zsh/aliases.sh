@@ -1,29 +1,55 @@
 #!/bin/sh
 
-# classic shell commands
+. "$ZDOTDIR/functions.sh"
+
+# ===========================
+# Classic Shell Commands
+# ===========================
+DISTRIBUTION=$(distro)
+if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
+  alias cat="bat"
+else
+  alias cat="batcat"
+fi
+
 alias cd="z"
-alias cat="bat"
 alias c="clear"
 
+# ===========================
+# File Listing Aliases
+# ===========================
 alias ls="eza --icons"
 alias ll="ls -l"
 alias la="ls -a"
 alias lla="ls -la"
 
-
+# ===========================
 # neovim
+# ===========================
 alias v="nvim"
 
-
+# ===========================
 # fastfetch
+# ===========================
 alias ff="fastfetch"
 
-
+# ===========================
 # systemd
+# ===========================
 alias start="sudo systemctl start"
 
+# ===========================
+# docker
+# ===========================
+alias docker-clean=' \
+  docker container prune -f ; \
+  docker image prune -f ; \
+  docker network prune -f ; \
+  docker volume prune -f '
 
+# ===========================
 # git
+# ===========================
 alias g="git"
 
 alias gi="git init"
@@ -44,11 +70,13 @@ alias gf="git fetch"
 alias gp="git push"
 alias gu="git pull"
 
-
+# ===========================
 # GitHub
+# ===========================
 alias gh-create="gh repo create --private --source=. --remote=origin && git push -u --all && gh browse"
 
-
+# ===========================
 # pnpm
+# ===========================
 alias pn="pnpm"
 alias px="pnpx"

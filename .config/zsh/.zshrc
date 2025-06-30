@@ -1,8 +1,14 @@
-#!/bin/sh 
+#!/bin/sh
 
-##### ZSH
+if [ -f /usr/bin/fastfetch ]; then
+  fastfetch
+fi
 
-### ZSH Plugins
+# ===========================
+# ZSH
+# ===========================
+
+# --- ZSH Plugins ---
 
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -25,10 +31,11 @@ zinit ice lucid as"program" pick"bin/git-dsf"
 zinit load so-fancy/diff-so-fancy
 
 
-### ZSH Configuration
+# --- ZSH Configuration ---
 
 # Source ZSH Files
 source "$ZDOTDIR/aliases.sh"
+source "$ZDOTDIR/functions.sh"
 
 # Load completions
 autoload -Uz compinit && compinit
@@ -53,7 +60,9 @@ setopt hist_ignore_dups
 setopt hist_find_no_dups
 
 
-##### SSH
+# ===========================
+# SSH
+# ===========================
 
 # SSH-agent setup
 if [ -z "$SSH_AUTH_SOCK" ] || ! pgrep -u "$USER" ssh-agent > /dev/null; then
@@ -63,7 +72,9 @@ if [ -z "$SSH_AUTH_SOCK" ] || ! pgrep -u "$USER" ssh-agent > /dev/null; then
 fi
 
 
-##### Shell integrations
+# ===========================
+# Shell Integrations
+# ===========================
 
 # Load NVM (Node Version Manager)
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
