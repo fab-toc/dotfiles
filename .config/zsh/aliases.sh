@@ -36,7 +36,7 @@ alias ff="fastfetch"
 # ===========================
 # systemd
 # ===========================
-alias start="sudo systemctl start"
+alias ctl="sudo systemctl"
 
 # ===========================
 # docker
