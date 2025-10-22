@@ -3,8 +3,9 @@
 alias v="nvim"
 alias vim="nvim"
 alias c="clear"
-alias bat="batcat"
-alias cat="batcat"
+#Binary's name is bat on MacOS
+alias bat="bat"
+alias cat="bat"
 
 # LS aliases
 alias ls="eza --icons"
