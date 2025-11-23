@@ -1,0 +1,76 @@
+{
+  // =========================
+  // Editor Appearance
+  // =========================
+  "inlay_hints": {
+    "show_other_hints": false,
+    "show_parameter_hints": false,
+    "show_type_hints": false,
+    "show_value_hints": true
+  },
+  "ui_font_family": "Inter Variable",
+  "ui_font_size": 21,
+
+  "buffer_font_family": "CommitMono Nerd Font Mono",
+  "buffer_font_size": 22,
+  "buffer_font_features": {
+    "calt": false // ligatures
+  },
+
+  "lsp_document_colors": "inlay",
+  "wrap_guides": [79],
+  "show_edit_predictions": false,
+
+  "toolbar": { "breadcrumbs": false, "quick_actions": false },
+  "tabs": { "file_icons": true, "git_status": true, "show_diagnostics": "all" },
+
+  // Theme & Colors
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "One Dark"
+  },
+  "icon_theme": "Material Icon Theme",
+
+  // =========================
+  // Editor Behavior
+  // =========================
+  "format_on_save": "on",
+  "restore_on_startup": "last_workspace",
+
+  // =========================
+  // Git Integration
+  // =========================
+  "git": {
+    "inline_blame": { "enabled": false }
+  },
+
+  // =========================
+  // Keymaps
+  // =========================
+  "base_keymap": "VSCode",
+
+  // =========================
+  // Language-Specific Settings
+  // =========================
+  "languages": {
+    // "Python": {
+    //   "formatter": {
+    //     "external": {
+    //       "command": "black",
+    //       "arguments": ["-", "--skip-string-normalization"]
+    //     }
+    //   },
+    //   "format_on_save": "on"
+    // }
+    "Python": { "formatter": "language_server" }
+  },
+
+  // =========================
+  // Privacy & Telemetry
+  // =========================
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  }
+}

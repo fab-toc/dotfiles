@@ -2,10 +2,11 @@
 
 . "$ZDOTDIR/functions.sh"
 
+DISTRIBUTION=$(distro)
+
 # ===========================
 # Classic Shell Commands
 # ===========================
-DISTRIBUTION=$(distro)
 if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
   alias cat="bat"
 else
@@ -16,7 +17,20 @@ alias cd="z"
 alias c="clear"
 
 # ===========================
-# File Listing Aliases
+# Package Manager
+# ===========================
+if [ "$DISTRIBUTION" = "arch" ]; then
+  alias s="yay -Ss"
+  alias i="yay -S"
+  alias u="yay -Syu"
+elif [ "$DISTRIBUTION" = "debian" ]; then
+  alias s="apt search"
+  alias i="apt install"
+  alias u="apt update"
+fi
+
+# ===========================
+# File Listing
 # ===========================
 alias ls="eza --icons"
 alias ll="ls -l"
@@ -36,7 +50,7 @@ alias ff="fastfetch"
 # ===========================
 # systemd
 # ===========================
-alias ctl="sudo systemctl"
+alias ctl="systemctl"
 
 # ===========================
 # docker
@@ -46,6 +60,8 @@ alias docker-clean=' \
   docker image prune -f ; \
   docker network prune -f ; \
   docker volume prune -f '
+
+alias sd="systemctl start containerd.service docker.service"
 
 # ===========================
 # git

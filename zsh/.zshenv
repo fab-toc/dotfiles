@@ -1,7 +1,7 @@
 export ZDOTDIR=$HOME/.config/zsh
 
 export EDITOR="code --wait"
-export VISUAL="$EDITOR"
+export VISUAL=$EDITOR
 export PAGER="less"
 
 # XDG
@@ -17,4 +17,6 @@ export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 # Android
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export ANDROID_HOME=$ANDROID_SDK_ROOT
+
+
 export PATH=$PATH:$JAVA_HOME:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platforms:$ANDROID_HOME/build-tools:$XDG_BIN_HOME

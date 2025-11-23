@@ -1,0 +1,11 @@
+{
+  "shellcheck.exclude": ["1091"],
+
+  "files.associations": {
+    "**/.stow-local-ignore": "ignore"
+  },
+  "material-icon-theme.files.associations": {
+    "config": "settings",
+    "install.sh": "installation"
+  }
+}

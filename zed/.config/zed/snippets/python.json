@@ -1,0 +1,39 @@
+{
+  "Main entry point": {
+    "prefix": "py-main",
+    "description": "Main entry point template",
+    "body": [
+      "def main() -> None:",
+      "    ${1:...}",
+      "",
+      "",
+      "if __name__ == '__main__':",
+      "    main()",
+      ""
+    ]
+  },
+  "Create a function": {
+    "prefix": "py-def",
+    "description": "Function template",
+    "body": [
+      "def ${1:new_function}($2) -> ${3:None}:",
+      "    ${4:raise NotImplementedError('$1() was not implemented.')}"
+    ]
+  },
+  "Quick debug": {
+    "prefix": "py-debug",
+    "description": "Quick debug",
+    "body": ["print(f'${1:name} = {${2:var}}')", "$0"]
+  },
+  "Quick try/except": {
+    "prefix": "py-try",
+    "description": "Quick try/except block template",
+    "body": [
+      "try:",
+      "    ${1:...}",
+      "except Exception as e:",
+      "    print(f'{type(e).__name__}: {e}')",
+      "$0"
+    ]
+  }
+}
