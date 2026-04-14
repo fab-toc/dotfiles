@@ -1,8 +1,7 @@
-#!/bin/sh
+#!/usr/bin/zsh
 
-# if [ -f /usr/bin/fastfetch ]; then
-#   fastfetch
-# fi
+# Used to set the user's interactive shell configuration and execute commands. Will be read when zsh starts as an interactive shell.
+# Configures the human-facing terminal interface. Usually uses internal shell variables rather than exported environment variables.
 
 # ===========================
 # ZSH
@@ -34,11 +33,12 @@ zinit load so-fancy/diff-so-fancy
 # --- ZSH Configuration ---
 
 # Source ZSH Files
-source "$ZDOTDIR/aliases.sh"
-source "$ZDOTDIR/functions.sh"
+source "$ZDOTDIR/aliases.zsh"
+source "$ZDOTDIR/functions.zsh"
 
 # Load completions
 autoload -Uz compinit && compinit
+autoload -U bashcompinit && bashcompinit
 
 # Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -47,8 +47,8 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
 # History
-HISTSIZE=5000
 HISTFILE=$ZDOTDIR/.zsh_history
+HISTSIZE=100000
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt appendhistory
@@ -64,12 +64,12 @@ setopt hist_find_no_dups
 # SSH
 # ===========================
 
-# SSH-agent setup
-if [ -z "$SSH_AUTH_SOCK" ] || ! pgrep -u "$USER" ssh-agent > /dev/null; then
-  eval "$(ssh-agent -s)" > /dev/null
-  ssh-add ~/.ssh/github_key > /dev/null 2>&1
-  ssh-add ~/.ssh/its_servers > /dev/null 2>&1
-fi
+# # SSH-agent setup
+# if [ -z "$SSH_AUTH_SOCK" ] || ! pgrep -u "$USER" ssh-agent > /dev/null; then
+#   eval "$(ssh-agent -s)" > /dev/null
+#   ssh-add ~/.ssh/github_key > /dev/null 2>&1
+#   ssh-add ~/.ssh/its_servers > /dev/null 2>&1
+# fi
 
 
 # ===========================
@@ -77,28 +77,32 @@ fi
 # ===========================
 
 # Load NVM (Node Version Manager)
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+source "/usr/share/nvm/init-nvm.sh"
 
-# Setup pnpm
-export PNPM_HOME="${HOME}/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
+# 3. Hook d'auto-switch (Détection des fichiers .nvmrc)
+autoload -U add-zsh-hook
+load-nvmrc() {
+  local nvmrc_path="$(nvm_find_nvmrc)"
 
-# Setup bun
-export PATH=$PATH:$HOME/.cache/.bun/bin # executables for global packages
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
 
-# Enable uv for Python and shell completions
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
+      nvm use
+    fi
+  elif [ -n "$(PWD=$OLDPWD nvm_find_nvmrc)" ] && [ "$(nvm version)" != "$(nvm version default)" ]; then
+    echo "Restitution de la version Node par défaut"
+    nvm use default
+  fi
+}
+add-zsh-hook chpwd load-nvmrc
+
+load-nvmrc # initial load
+
+source <(fzf --zsh)
+eval "$(starship init zsh)"
+eval "$(zoxide init zsh)"
 eval "$(uv generate-shell-completion zsh)"
 eval "$(uvx --generate-shell-completion zsh)"
-
-# Set up fzf key bindings and fuzzy completion
-source <(fzf --zsh)
-
-# Enable Starship
-eval "$(starship init zsh)"
-
-# Enable Zoxide
-eval "$(zoxide init zsh)"

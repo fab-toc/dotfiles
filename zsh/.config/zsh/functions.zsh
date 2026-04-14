@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/zsh
 
 # Show the current distribution
 distro() {
@@ -57,4 +57,8 @@ distro() {
   fi
 
   echo $dtype
+}
+
+path() {
+  echo -e "${PATH//:/\\n}"
 }

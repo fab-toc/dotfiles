@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/usr/bin/zsh
 
-. "$ZDOTDIR/functions.sh"
+. "$ZDOTDIR/functions.zsh"
 
 DISTRIBUTION=$(distro)
 
@@ -21,7 +21,7 @@ alias c="clear"
 # ===========================
 if [ "$DISTRIBUTION" = "arch" ]; then
   alias s="yay -Ss"
-  alias i="yay -S"
+  alias i="yay -S --needed"
   alias u="yay -Syu"
 elif [ "$DISTRIBUTION" = "debian" ]; then
   alias s="apt search"
