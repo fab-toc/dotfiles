@@ -37,7 +37,8 @@ source "$ZDOTDIR/aliases.zsh"
 source "$ZDOTDIR/functions.zsh"
 
 # Load completions
-autoload -Uz compinit && compinit
+# The completion dump is a cache, so it belongs outside the repository.
+autoload -Uz compinit && compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 autoload -U bashcompinit && bashcompinit
 
 # Completion styling
@@ -47,7 +48,9 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
 # History
-HISTFILE=$ZDOTDIR/.zsh_history
+# State, not configuration: kept out of the dotfiles repository entirely.
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+mkdir -p "${HISTFILE:h}"
 HISTSIZE=100000
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
@@ -76,32 +79,8 @@ setopt hist_find_no_dups
 # Shell Integrations
 # ===========================
 
-# Load NVM (Node Version Manager)
-source "/usr/share/nvm/init-nvm.sh"
-
-# 3. Hook d'auto-switch (Détection des fichiers .nvmrc)
-autoload -U add-zsh-hook
-load-nvmrc() {
-  local nvmrc_path="$(nvm_find_nvmrc)"
-
-  if [ -n "$nvmrc_path" ]; then
-    local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
-
-    if [ "$nvmrc_node_version" = "N/A" ]; then
-      nvm install
-    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
-      nvm use
-    fi
-  elif [ -n "$(PWD=$OLDPWD nvm_find_nvmrc)" ] && [ "$(nvm version)" != "$(nvm version default)" ]; then
-    echo "Restitution de la version Node par défaut"
-    nvm use default
-  fi
-}
-add-zsh-hook chpwd load-nvmrc
-
-load-nvmrc # initial load
-
-eval "$(mise activate zsh)"
+# mise supersedes nvm: it reads .nvmrc natively, so no chpwd hook is needed.
+command -v mise >/dev/null && eval "$(mise activate zsh)"
 source <(fzf --zsh)
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"

@@ -1,3 +1,8 @@
-# ZSH related files
-.zsh_history
-.zcompdump
+# Machine-specific git identity and signing key (see docs/adr/0004).
+config.local
+
+# Legacy state left in the tree from before history and completion caches
+# moved to $XDG_STATE_HOME / $XDG_CACHE_HOME. Safe to delete once you have
+# confirmed nothing needs them; nothing writes here any more.
+**/.zsh_history
+**/.zcompdump*

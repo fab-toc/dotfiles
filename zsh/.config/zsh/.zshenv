@@ -11,7 +11,9 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
-export EDITOR="code --wait"
+# A terminal editor is the only choice that works identically on every
+# machine, including headless servers where no GUI editor exists.
+export EDITOR="nvim"
 export VISUAL="$EDITOR"
 export PAGER="less"
 

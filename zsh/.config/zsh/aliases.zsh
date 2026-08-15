@@ -16,7 +16,10 @@ fi
 alias cd="z"
 alias c="clear"
 
-alias grep="rg --color=auto"
+# Not aliased over grep: rg takes different flags and recurses by default,
+# so anything expecting real grep would misbehave.
+command -v rg >/dev/null && alias rg="rg --color=auto"
+alias grep="grep --color=auto"
 alias diff="diff --color=auto"
 alias df="df -h"
 

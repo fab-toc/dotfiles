@@ -1,13 +1,17 @@
-[user]
-  name = fab-toc
-  email = 81991643+fab-toc@users.noreply.github.com
-  signingkey = ~/.ssh/github_signing_key.pub
+# Identity and signing key live outside this public repository, in an
+# untracked config.local. Git ignores this include when the file is absent.
+# See docs/adr/0004-manual-ssh-key-retrieval.md
+[include]
+  path = config.local
 
 [core]
   compression = 9
-  whitespace = error
   preloadindex = true
-  editor = code --wait
+  # editor deliberately unset: inherits $EDITOR, which is nvim everywhere
+  # so that headless machines get a working editor too.
+
+[apply]
+  whitespace = error
 
 [help]
   autocorrect = prompt
