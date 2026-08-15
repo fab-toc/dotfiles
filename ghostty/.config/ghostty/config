@@ -7,7 +7,3 @@ font-size = 10
 
 # Restart a new shell for each tab and window
 gtk-single-instance = false
-
-# background-opacity = 0.85
-
-# window-decoration = none
