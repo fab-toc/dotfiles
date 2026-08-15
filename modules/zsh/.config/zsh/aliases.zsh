@@ -1,19 +1,28 @@
 #!/usr/bin/zsh
 
-. "$ZDOTDIR/functions.zsh"
-
-DISTRIBUTION=$(distro)
+# Aliases guard on what is present, never on which distribution this is.
+# Alias *names* are the contract and are identical everywhere; what they
+# resolve to may differ. See docs/adr/0005-single-branch-not-per-distribution.md
 
 # ===========================
 # Classic Shell Commands
 # ===========================
-if [ "$DISTRIBUTION" = "redhat" ] || [ "$DISTRIBUTION" = "arch" ]; then
+
+# Debian ships bat as `batcat` (the name `bat` is taken by bacula). Ask which
+# binary exists rather than which distribution this is — on a machine with
+# neither, `cat` must stay the real cat.
+if command -v bat >/dev/null; then
   alias cat="bat"
-else
+elif command -v batcat >/dev/null; then
   alias cat="batcat"
 fi
 
-alias cd="z"
+# Same rename, same treatment.
+if command -v fdfind >/dev/null && ! command -v fd >/dev/null; then
+  alias fd="fdfind"
+fi
+
+command -v zoxide >/dev/null && alias cd="z"
 alias c="clear"
 
 # Not aliased over grep: rg takes different flags and recurses by default,
@@ -26,41 +35,50 @@ alias df="df -h"
 # ===========================
 # Package Manager
 # ===========================
-if [ "$DISTRIBUTION" = "arch" ]; then
+
+# yay first so it wins on Arch once bootstrapped, pacman next so these aliases
+# still work on a fresh Arch machine before it is, apt last.
+if command -v yay >/dev/null; then
   alias s="yay -Ss"
   alias i="yay -S --needed"
   alias u="yay -Syu"
-elif [ "$DISTRIBUTION" = "debian" ]; then
+elif command -v pacman >/dev/null; then
+  alias s="pacman -Ss"
+  alias i="sudo pacman -S --needed"
+  alias u="sudo pacman -Syu"
+elif command -v apt >/dev/null; then
   alias s="apt search"
-  alias i="apt install"
-  alias u="apt update"
+  alias i="sudo apt install"
+  alias u="sudo apt update"
 fi
 
 # ===========================
 # File Listing
 # ===========================
-alias ls="eza --icons"
-alias ll="eza -lh --icons --git"
-alias la="eza -lah --icons --git"
-alias tree="eza --tree --icons"
-
-# Reuse ls completions for eza (avoids defining a separate completion function)
-# compdef eza=ls
+if command -v eza >/dev/null; then
+  alias ls="eza --icons"
+  alias ll="eza -lh --icons --git"
+  alias la="eza -lah --icons --git"
+  alias tree="eza --tree --icons"
+else
+  alias ll="ls -lh"
+  alias la="ls -lah"
+fi
 
 # ===========================
 # neovim
 # ===========================
-alias v="nvim"
+command -v nvim >/dev/null && alias v="nvim"
 
 # ===========================
 # fastfetch
 # ===========================
-alias ff="fastfetch"
+command -v fastfetch >/dev/null && alias ff="fastfetch"
 
 # ===========================
 # systemd
 # ===========================
-alias ctl="systemctl"
+command -v systemctl >/dev/null && alias ctl="systemctl"
 
 # ===========================
 # docker

@@ -41,11 +41,11 @@
 [column]
   ui = auto
 
-[pager]
-  diff = diff-so-fancy | $PAGER
-
+# No pager is configured here on purpose. Git configuration cannot test
+# whether a binary exists — includeIf supports only gitdir:, onbranch: and
+# hasconfig: — so an external pager named here breaks `git diff` outright on
+# any machine lacking it. See docs/adr/0003-no-zsh-plugin-manager.md
 [interactive]
-  diffFilter = diff-so-fancy --patch
   singlekey = true
 
 [fetch]
@@ -80,11 +80,6 @@
 [tag]
   sort = version:refname
   gpgsign = true
-
-# Third-party: diff-so-fancy
-[diff-so-fancy]
-  markEmptyLines = false
-
 
 # URL shortcuts
 [url "git@github.com:"]
