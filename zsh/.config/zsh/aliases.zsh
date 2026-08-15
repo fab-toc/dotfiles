@@ -16,6 +16,10 @@ fi
 alias cd="z"
 alias c="clear"
 
+alias grep="rg --color=auto"
+alias diff="diff --color=auto"
+alias df="df -h"
+
 # ===========================
 # Package Manager
 # ===========================
@@ -33,9 +37,12 @@ fi
 # File Listing
 # ===========================
 alias ls="eza --icons"
-alias ll="ls -l"
-alias la="ls -a"
-alias lla="ls -la"
+alias ll="eza -lh --icons --git"
+alias la="eza -lah --icons --git"
+alias tree="eza --tree --icons"
+
+# Reuse ls completions for eza (avoids defining a separate completion function)
+# compdef eza=ls
 
 # ===========================
 # neovim
@@ -71,13 +78,14 @@ alias g="git"
 alias gi="git init"
 alias gcl="git clone"
 
-alias gs="git status --short"
+alias gs="git status"
+
 alias ga="git add"
-alias gaa="git add ."
+alias gaa="git add --all"
 alias gap="git add --patch"
 alias gc="git commit"
 
-alias gl="git log --graph --all --pretty=format:'%C(magenta)%h %C(white) %an  %ar%C(auto)  %D%n%s%n'"
+alias gl="git log --all --graph --pretty=format:'%C(magenta)%h %C(white) %an  %ar%C(auto)  %D%n%s%n'"
 alias gb="git branch"
 alias gco="git checkout"
 alias gd="git diff --output-indicator-new=' ' --output-indicator-old=' '"

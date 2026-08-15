@@ -2,6 +2,23 @@
   // =========================
   // Editor Appearance
   // =========================
+  "project_panel": {
+    "dock": "left"
+  },
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "git_panel": {
+    "dock": "left"
+  },
   "inlay_hints": {
     "show_other_hints": false,
     "show_parameter_hints": false,

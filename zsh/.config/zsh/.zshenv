@@ -17,9 +17,6 @@ export PAGER="less"
 
 export BROWSER="zen-browser"
 
-# Java
-# export JAVA_HOME=/usr/lib/jvm/java-21-openjdk # arch does not use JAVA_HOME
-
 # Bun
 export BUN_INSTALL="$XDG_CACHE_HOME/bun"
 
@@ -37,11 +34,10 @@ path=(
     $BUN_INSTALL/bin
 
     # Android
-    $ANDROID_HOME/tools
-    $ANDROID_HOME/tools/bin
-    $ANDROID_HOME/platform-tools
-    $ANDROID_HOME/cmdline-tools/latest/bin
     $ANDROID_HOME/emulator
+    # $ANDROID_HOME/tools/bin
+    $ANDROID_HOME/platform-tools
+    # $ANDROID_HOME/cmdline-tools/latest/bin
 )
 path=($^path(N-/))
 export PATH

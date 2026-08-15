@@ -4,30 +4,38 @@
   signingkey = ~/.ssh/github_signing_key.pub
 
 [core]
-  editor = code --wait
   compression = 9
+  whitespace = error
   preloadindex = true
+  editor = code --wait
+
+[help]
+  autocorrect = prompt
 
 [init]
   defaultBranch = main
 
 [status]
+  branch = true
   showStash = true
+  showUntrackedFiles = all
 
-[push]
-  autoSetupRemote = true
-  default = current
-
-[pull]
-  default = current
-
-[log]
-  abbrevCommit = true
+[branch]
+  sort = -committerdate
 
 [diff]
+  algorithm = histogram
+  colorMoved = plain
+  mnemonicPrefix = true
+  renames = true
   context = 3
-  renames = copies
   interHunkContext = 10
+
+# [advice]
+#   addEmptyPathspec = false
+
+[column]
+  ui = auto
 
 [pager]
   diff = diff-so-fancy | $PAGER
@@ -36,8 +44,28 @@
   diffFilter = diff-so-fancy --patch
   singlekey = true
 
-[diff-so-fancy]
-  markEmptyLines = false
+[fetch]
+  prune = true
+  pruneTags = true
+  all = true
+
+[push]
+  default = current
+  autoSetupRemote = true
+  followTags = true
+
+[pull]
+  default = current
+  rebase = true
+
+[rebase]
+  autoStash = true
+  autoSquash = true
+  updateRefs = true
+  missingCommitsCheck = warn
+
+[log]
+  abbrevCommit = true
 
 [gpg]
   format = ssh
@@ -46,13 +74,20 @@
   gpgsign = true
 
 [tag]
+  sort = version:refname
   gpgsign = true
 
+# Third-party: diff-so-fancy
+[diff-so-fancy]
+  markEmptyLines = false
+
+
+# URL shortcuts
 [url "git@github.com:"]
   insteadOf = "gh:"
 
 [url "git@github.com:fab-toc/"]
-  insteadOf = "me:"
+  insteadOf = "ft:"
 
 [url "git@github.com:info-telecom-strasbourg/"]
   insteadOf = "its:"

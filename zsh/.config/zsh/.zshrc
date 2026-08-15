@@ -101,6 +101,7 @@ add-zsh-hook chpwd load-nvmrc
 
 load-nvmrc # initial load
 
+eval "$(mise activate zsh)"
 source <(fzf --zsh)
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
