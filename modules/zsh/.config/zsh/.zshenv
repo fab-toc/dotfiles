@@ -26,6 +26,9 @@ export BUN_INSTALL="$XDG_CACHE_HOME/bun"
 export ANDROID_HOME="$HOME/Android/Sdk"
 export ANDROID_USER_HOME="$HOME/.android"
 
+# Starship
+export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/starship.toml"
+
 # PATH
 typeset -U path PATH
 path=(
