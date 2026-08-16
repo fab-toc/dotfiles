@@ -1,5 +1,11 @@
 #!/bin/sh
-# Installer. POSIX sh, not bash: Debian's /bin/sh is dash.
+# Installer, and its own entry point.
+#
+# POSIX sh, not bash: this file is meant to be run as `curl … | sh`, and
+# Debian's /bin/sh is dash. Piped, it has no repository to work from, so it
+# clones one and re-execs itself from the clone. Run from a checkout, it uses
+# whatever directory it is sitting in — the location is yours to choose, but it
+# is fixed once chosen, because stow encodes it into every symlink.
 #
 # Reads tools.json, installs each selected tool from the source named for this
 # distribution, stows the modules that have one, and ends with a report of
@@ -8,8 +14,7 @@
 
 set -eu
 
-DOTFILES="$HOME/.dotfiles"
-MANIFEST="$DOTFILES/tools.json"
+REPO_URL="https://github.com/fab-toc/dotfiles.git"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
 STATE="$STATE_DIR/state"
 
@@ -26,6 +31,7 @@ EXIT_CODE=0
 # actually selected, so installing one module never asks about another's keys.
 REQUIRED_KEYS=""
 SELECTED_GIT="no"
+SELECTED_MODULES=""
 
 # ---------------------------------------------------------------------------
 # Output
@@ -60,17 +66,63 @@ append() {
 }
 
 # ---------------------------------------------------------------------------
-# Preconditions
+# Selection
 # ---------------------------------------------------------------------------
+# Named tools are installed and their modules linked; nothing else is touched.
+# With no arguments, the manifest's defaults decide. $DOTFILES_MODULES exists
+# because `curl … | sh` cannot take arguments without `sh -s --`, which is
+# obscure enough that people get it wrong.
 
-# Stow encodes this repository's absolute path into every symlink, so running
-# from anywhere else would silently produce links that dangle the moment the
-# directory moves. See docs/adr/0002-stow-contract.md
-HERE="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
-[ "$HERE" = "$DOTFILES" ] ||
-	die "This repository must live at $DOTFILES (found it at $HERE)."
+SELECTION="${DOTFILES_MODULES:-}"
+for arg in "$@"; do
+	case "$arg" in
+	-*) die "Unknown option: $arg" ;;
+	*) SELECTION="$SELECTION $arg" ;;
+	esac
+done
+SELECTION="${SELECTION# }"
 
+# ---------------------------------------------------------------------------
+# Finding the repository
+# ---------------------------------------------------------------------------
+# Piped, $0 is `sh` or `-` and there is nothing to install from; from a
+# checkout, $0 resolves to a directory holding the manifest. That difference is
+# the whole test. See docs/adr/0002-stow-contract.md
+
+HERE=""
+if [ -n "${0:-}" ] && [ -f "$0" ]; then
+	HERE="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
+	[ -f "$HERE/tools.json" ] && [ -d "$HERE/modules" ] || HERE=""
+fi
+
+if [ -n "$HERE" ]; then
+	DOTFILES="$HERE"
+else
+	# No checkout: clone one and hand over to the copy on disk. Everything
+	# after this point assumes a repository it can read.
+	DOTFILES="${DOTFILES_DIR:-$HOME/.dotfiles}"
+	command -v git >/dev/null 2>&1 ||
+		die "git is required to clone the repository. Install git, then run this again."
+
+	if [ -e "$DOTFILES" ]; then
+		[ -d "$DOTFILES/.git" ] ||
+			die "$DOTFILES exists but is not a git repository. Move it aside, or set \$DOTFILES_DIR."
+		info "Updating existing clone at $DOTFILES"
+		git -C "$DOTFILES" pull --ff-only
+	else
+		info "Cloning into $DOTFILES"
+		git clone "$REPO_URL" "$DOTFILES"
+	fi
+
+	[ -f "$DOTFILES/install.sh" ] ||
+		die "$DOTFILES/install.sh is missing; the clone looks incomplete."
+
+	DOTFILES_MODULES="$SELECTION" exec sh "$DOTFILES/install.sh"
+fi
+
+MANIFEST="$DOTFILES/tools.json"
 [ -f "$MANIFEST" ] || die "Manifest not found at $MANIFEST"
+info "Repository: ${B}${DOTFILES}${R}"
 
 # ---------------------------------------------------------------------------
 # Distribution
@@ -108,6 +160,22 @@ state_set() {
 	printf '%s\t%s\n' "$1" "$2" >>"$tmp"
 	mv "$tmp" "$STATE"
 }
+
+# The location is free but not movable: every symlink stow made encodes the
+# absolute path it was made from. Running from a second location would leave the
+# first one's links behind, dangling and unowned, so it is refused while the old
+# directory is still there to unstow from. If it is gone, the links are already
+# broken and there is nothing left to clean up, so the new path is adopted with
+# a warning. See docs/adr/0002-stow-contract.md
+RECORDED_PATH="$(state_get dotfiles.path)"
+if [ -n "$RECORDED_PATH" ] && [ "$RECORDED_PATH" != "$DOTFILES" ]; then
+	if [ -d "$RECORDED_PATH" ]; then
+		die "This machine's modules are linked from $RECORDED_PATH.
+  Unstow there first (see the README), or delete the dotfiles.path line in $STATE."
+	fi
+	warn "$RECORDED_PATH is gone; any links it made are already broken. Adopting $DOTFILES."
+fi
+state_set dotfiles.path "$DOTFILES"
 
 HEADLESS="$(state_get headless)"
 if [ -z "$HEADLESS" ]; then
@@ -229,6 +297,24 @@ install_tool() {
 
 bootstrap_jq
 
+# A named tool brings along the tools its configuration integrates with: asking
+# for the zsh module and getting a prompt-less, completion-less zsh would be a
+# surprise. The list is the manifest's `with` field, one level deep only.
+EXPANDED=""
+for want in $SELECTION; do
+	jq -e --arg t "$want" 'has($t)' "$MANIFEST" >/dev/null ||
+		die "No tool called '$want' in the manifest."
+	EXPANDED="$EXPANDED $want $(jq -r --arg t "$want" '.[$t].with // [] | join(" ")' "$MANIFEST")"
+done
+
+selected_by_argument() {
+	# selected_by_argument TOOL -> true when TOOL was named or brought along
+	case " $EXPANDED " in
+	*" $1 "*) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
 info "Reading $MANIFEST"
 
 # jq flattens the manifest to one tab-separated line per tool, so the loop below
@@ -259,13 +345,24 @@ while IFS="$(printf '\t')" read -r tool source kind default keys; do
 		continue
 	fi
 
-	# Selection is remembered, so a re-run asks nothing.
-	selected="$(state_get "tool.$tool")"
-	if [ -z "$selected" ]; then
-		selected="$default"
-		state_set "tool.$tool" "$selected"
+	if [ -n "$SELECTION" ]; then
+		# An argument is a one-off answer, not a new default: it decides this
+		# run only, and leaves what the machine remembers alone.
+		selected_by_argument "$tool" || continue
+	else
+		# Selection is remembered, so a re-run asks nothing.
+		selected="$(state_get "tool.$tool")"
+		if [ -z "$selected" ]; then
+			selected="$default"
+			state_set "tool.$tool" "$selected"
+		fi
+		[ "$selected" = "yes" ] || continue
 	fi
-	[ "$selected" = "yes" ] || continue
+
+	# Only selected modules are linked. A module whose tool was not selected is
+	# configuration for something this machine does not have.
+	[ -d "$DOTFILES/modules/$tool" ] &&
+		SELECTED_MODULES="$(append "$SELECTED_MODULES" "$tool")"
 
 	# Only a selected tool's keys are ever asked about.
 	for key in $keys; do
@@ -307,12 +404,15 @@ done <"$ROWS"
 # Never --adopt: it pulls the machine's file into the repository, overwriting
 # tracked configuration. See docs/adr/0002-stow-contract.md
 
-command -v stow >/dev/null 2>&1 || die "stow is required and was not installed."
+if [ -z "$SELECTED_MODULES" ]; then
+	info "No modules to link."
+else
+	command -v stow >/dev/null 2>&1 || die "stow is required and was not installed."
+	info "Linking modules"
+fi
 
-info "Linking modules"
-for dir in "$DOTFILES"/modules/*/; do
-	[ -d "$dir" ] || continue
-	module="$(basename "$dir")"
+for module in $SELECTED_MODULES; do
+	dir="$DOTFILES/modules/$module"
 
 	# A conflicting real file is moved aside, never absorbed and never
 	# discarded. Every backup is reported at the end.

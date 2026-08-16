@@ -21,26 +21,46 @@ an unguarded `eval` breaking your login shell.
 
 ## Install
 
-Requires `git` and `curl`. Install them first — the bootstrap deliberately
-installs nothing.
+Requires `git` and `curl`. Install them first — the installer deliberately
+arranges nothing on your behalf before you have read it.
 
 ```sh
 sudo pacman -S git curl      # Arch
 sudo apt install git curl    # Debian / Ubuntu
 ```
 
-Then:
+Everything:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/fab-toc/dotfiles/main/bootstrap.sh | sh
+curl -fsSL https://raw.githubusercontent.com/fab-toc/dotfiles/main/install.sh | sh
 ```
 
-The bootstrap is a few readable lines: it checks git, clones to `~/.dotfiles`,
-and hands off to `install.sh`. Read it before you pipe it.
+Or only the parts you want — naming a tool brings along the ones its
+configuration integrates with, so `zsh` arrives with its prompt, completions and
+the tools its aliases call:
 
-The repository path is a permanent contract — GNU Stow encodes it into every
-symlink — so `~/.dotfiles` is not configurable and the installer refuses to run
-from anywhere else.
+```sh
+curl -fsSL .../install.sh | DOTFILES_MODULES="zsh git" sh
+curl -fsSL .../install.sh | sh -s -- zsh git          # same thing
+```
+
+Piped, the installer finds no repository around it, so it clones one and
+re-execs itself from the clone. Read it before you pipe it — it is the only file
+you have to trust.
+
+### Where it lives
+
+`~/.dotfiles` by default; set `DOTFILES_DIR` to clone somewhere else, or clone
+by hand and run `./install.sh` from wherever you put it.
+
+The location is yours, but it is fixed once chosen: GNU Stow encodes the
+repository's absolute path into every symlink it makes. The installer remembers
+where it ran from and refuses to run from a second location while the first one
+still exists — unstow there first, or you leave broken links behind that nothing
+owns. If the old directory is already gone, it adopts the new path and says so.
+
+Selecting tools by argument decides that run only. It does not change what the
+machine remembers, so a later bare `./install.sh` still installs the defaults.
 
 ## What the installer does
 
@@ -101,7 +121,7 @@ why; check them before "fixing" one.
 ## Removing
 
 ```sh
-stow --dir ~/.dotfiles/modules --target ~ --delete <module>
+stow --dir <repo>/modules --target ~ --delete <module>
 ```
 
 This reverses the symlinks only. It never removes packages — uninstalling system

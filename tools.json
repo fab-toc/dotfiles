@@ -1,5 +1,24 @@
 {
-  "zsh": { "arch": "zsh", "debian": "zsh", "kind": "cli", "default": true },
+  "zsh": {
+    "arch": "zsh",
+    "debian": "zsh",
+    "kind": "cli",
+    "default": true,
+    "with": [
+      "zsh-autosuggestions",
+      "zsh-syntax-highlighting",
+      "zsh-completions",
+      "starship",
+      "bat",
+      "fd",
+      "ripgrep",
+      "eza",
+      "fzf",
+      "zoxide",
+      "less"
+    ],
+    "note": "The zsh module guards on every one of these, so a partial install loses features rather than breaking the shell. `with` is what asking for zsh alone brings along."
+  },
   "zsh-autosuggestions": { "arch": "zsh-autosuggestions", "debian": "zsh-autosuggestions", "kind": "cli", "default": true },
   "zsh-syntax-highlighting": { "arch": "zsh-syntax-highlighting", "debian": "zsh-syntax-highlighting", "kind": "cli", "default": true },
   "zsh-completions": {
@@ -17,6 +36,7 @@
     "kind": "cli",
     "default": true,
     "requires_keys": ["~/.ssh/github_key"],
+    "with": ["openssh", "github-cli", "less"],
     "note": "The git module sets commit.gpgsign = true, so the signing key must exist before any commit succeeds."
   },
   "github-cli": { "arch": "github-cli", "debian": "gh", "kind": "cli", "default": true, "note": "Packaged under different names: github-cli on Arch, gh on Debian." },

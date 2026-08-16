@@ -48,12 +48,12 @@ _Avoid_: disabled, ignored, off
 A source meaning a tool cannot be had on a distribution at all. An honest, reported outcome — not a failure.
 _Avoid_: missing, broken, unavailable
 
-**Bootstrap**:
-The piped entry script. It checks that git is present, clones this repository to `~/.dotfiles`, and hands off to the installer. It does not install anything itself — git and curl are stated prerequisites.
-_Avoid_: setup, init
+**Selection**:
+The tools this run installs, and therefore the modules it links. Either the tools named as arguments — each bringing along the tools its configuration integrates with — or, when none are named, the manifest's defaults, remembered per machine. Naming tools decides one run; it never changes what the machine remembers.
+_Avoid_: profile, preset, subset
 
 **Machine State**:
-The record, kept at `$XDG_STATE_HOME/dotfiles/state` as tab-separated `key<TAB>value` lines, of which tools a given machine selected and whether it is headless. What makes re-runs silent and repeatable.
+The record, kept at `$XDG_STATE_HOME/dotfiles/state` as tab-separated `key<TAB>value` lines, of which tools a given machine selected, whether it is headless, and which directory its modules are linked from. What makes re-runs silent and repeatable.
 _Avoid_: state file, cache, local manifest
 
 **Headless**:

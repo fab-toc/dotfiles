@@ -44,7 +44,7 @@ Tool _versions_ differ between machines even though configuration does not. Debi
 
 **Ghostty and Zed are `manual` on Debian, not unsupported.** Zed's official Linux route is `curl -f https://zed.dev/install.sh | sh`; Ghostty prebuilds binaries for macOS only, leaving a source build or a community `.deb`. A `manual` document may prescribe whatever upstream prescribes, curl-pipes included — the meaningful difference from an installer doing it on your behalf is that you read the document and run the command knowingly.
 
-**The bootstrap is the one curl-pipe this design cannot avoid.** It is fetched before the repository exists, so there is nothing else to run it from. It is kept to a few readable lines, it installs nothing, and it fails loudly if git is absent — git and curl are stated prerequisites in the README rather than something a script silently arranges.
+**The installer itself is the one curl-pipe this design cannot avoid.** It is fetched before the repository exists, so there is nothing else to run it from. It clones and re-execs rather than installing anything of its own, and it fails loudly if git is absent — git and curl are stated prerequisites in the README rather than something a script silently arranges.
 
 `yay` is bootstrapped on Arch via `base-devel` and `makepkg -si`. This is a clone and a local build, but it is the only mechanism the AUR has and it ends in a pacman-registered package, so it counts as native. The installer never _depends_ on `yay` for its own work.
 
