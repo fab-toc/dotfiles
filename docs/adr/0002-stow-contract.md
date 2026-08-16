@@ -2,7 +2,9 @@
 
 Configuration is symlinked into `$HOME` by GNU Stow, using `--dir modules --no-folding`.
 
-**The location is yours to choose, and fixed once chosen.** Symlinks encode the repository's absolute path, so what stow actually requires is stability, not a particular directory — an earlier version of this ADR conflated the two and hardcoded `~/.dotfiles`. The installer now takes its own directory as the repository (`$DOTFILES_DIR` decides only where a piped run clones to, defaulting to `~/.dotfiles`) and records that path in machine state. Run later from a different directory, it **refuses** while the recorded one still exists — unstow there first, or the old links are orphaned with nothing to remove them — and **adopts the new path with a warning** when the recorded one is gone, because by then the links are already broken and there is nothing left to clean up.
+**The location is yours to choose, and fixed once chosen.** Symlinks encode the repository's absolute path, so what stow actually requires is stability, not a particular directory — an earlier version of this ADR conflated the two and hardcoded `~/.dotfiles`. The installer now takes its own directory as the repository (`$DOTFILES_DIR` decides only where a piped run clones to, defaulting to `~/.dotfiles`) and records that path in machine state. Run later from a different directory, it **refuses** while the recorded one still exists — unstow there first, or the old links are orphaned with nothing to remove them — and **adopts the new path with a warning** when the recorded one is gone.
+
+Adopting requires clearing up after the vanished repository: its symlinks are still sitting in `$HOME`, resolving to nothing, and stow aborts on them. A symlink that resolves to nothing, at a path this repository is about to install to, can only be one of ours — so it is deleted and reported. Without that step the adopt case failed every single time it was reached, which is what testing it revealed.
 
 Only selected modules are linked. A module directory whose tool was not selected is configuration for something the machine does not have, and linking it anyway was a bug this rule removes.
 

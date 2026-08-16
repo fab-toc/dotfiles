@@ -24,6 +24,8 @@ It installs packages, writes machine state, and reports the same way. Only the l
 
 **Backups.** Stow refuses to overwrite a real file, which is what made the backup pass safe. `cp` has no such scruple, so the pass that moves a conflicting file to `<name>.bak` runs before either mode touches anything — it protects link mode from an abort and copy mode from a silent overwrite.
 
+That pass also removes any **symlink** standing where copy mode is about to write, and reports what it pointed at. `cp` follows a symlink and writes *through* it: copying over a link into some other checkout would overwrite that checkout's tracked file. This is the corruption `--adopt` is banned for, arriving by a different route, and it is only visible because copy mode was tested on a machine that had already been installed in link mode.
+
 ## Consequences
 
 Machine state records the mode, and the recorded repository path is written **only in link mode** — copy mode makes no symlinks, so it is bound to no directory and the "you moved the repository" check does not apply to it.

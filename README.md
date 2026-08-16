@@ -70,7 +70,9 @@ ends with a report of everything still outstanding.
 
 A conflicting file already in your home directory is moved to `<name>.bak` and
 reported — never overwritten, never absorbed into the repository. Link mode never
-uses `stow --adopt`, which would do exactly that.
+uses `stow --adopt`, which would do exactly that. A symlink left over from a
+repository that has moved or been deleted is removed and reported, as is one that
+copy mode is about to replace.
 
 ### Link or copy
 

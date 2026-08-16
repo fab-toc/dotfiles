@@ -12,11 +12,14 @@ Because nothing tests the install, the report the installer prints at the end is
 
 - every `manual` tool, with the path to its `docs/setup/<tool>.md`
 - every `unsupported` tool, with the distribution that lacks it
-- every `.bak` file stow moved aside (ADR-0002)
-- missing SSH keys, with the Proton Pass instruction (ADR-0004)
+- every graphical tool skipped because the machine is headless
+- every `.bak` file moved aside, and every symlink removed, with what it pointed at (ADR-0002, ADR-0009)
+- missing SSH keys named by the manifest, if any selected tool declared them (ADR-0004)
 - every tool that has a `docs/setup/<tool>.md` file, whatever its source
 
-That last category catches the tools which install cleanly but still need a human — group membership, socket enablement, ACLs, as libvirt does. The file's existence is the flag, so the manifest needs no column for it and the two cannot fall out of sync.
+The headless entry exists because naming a graphical tool on a headless machine used to install nothing and print "Done." — a skip is only a skip when it is said out loud.
+
+The setup-document category catches the tools which install cleanly but still need a human — group membership, socket enablement, ACLs, as libvirt does. The file's existence is the flag, so the manifest needs no column for it and the two cannot fall out of sync.
 
 `excluded` tools are never listed. They are working as intended, and a report that mentions them trains you to skim it.
 

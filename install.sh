@@ -24,6 +24,8 @@ REPORT_MANUAL=""
 REPORT_UNSUPPORTED=""
 REPORT_DOCS=""
 REPORT_BACKUPS=""
+REPORT_STALE=""
+REPORT_SKIPPED=""
 REPORT_FAILED=""
 EXIT_CODE=0
 
@@ -143,84 +145,6 @@ fi
 info "Distribution column: ${B}${COLUMN}${R}"
 
 # ---------------------------------------------------------------------------
-# Machine state
-# ---------------------------------------------------------------------------
-# Which tools this machine selected, and whether it is headless. Kept in
-# $XDG_STATE_HOME so `git clean -xdf` in the repository cannot destroy it.
-
-mkdir -p "$STATE_DIR"
-[ -f "$STATE" ] || : >"$STATE"
-
-state_get() {
-	# state_get KEY -> value, empty if unset
-	awk -F'\t' -v k="$1" '$1 == k { print $2; exit }' "$STATE"
-}
-
-state_set() {
-	# state_set KEY VALUE
-	tmp="$STATE.tmp"
-	awk -F'\t' -v k="$1" '$1 != k' "$STATE" >"$tmp"
-	printf '%s\t%s\n' "$1" "$2" >>"$tmp"
-	mv "$tmp" "$STATE"
-}
-
-# How the configuration reaches $HOME. Asked once, remembered, and skippable
-# with --link or --copy. The question states what each answer costs, because
-# getting this one wrong is the failure that looks like success: copies that no
-# `git pull` will ever update.
-if [ -z "$MODE" ]; then
-	MODE="$(state_get mode)"
-fi
-if [ -z "$MODE" ]; then
-	printf '\n%sHow should the configuration reach your home directory?%s\n' "$B" "$R"
-	printf '  %slink%s  symlink it from %s. Edits write back to the repository,\n' "$B" "$R" "$DOTFILES"
-	printf '        which must then stay where it is.\n'
-	printf '  %scopy%s  copy the files. The repository can be deleted afterwards, and\n' "$B" "$R"
-	printf '        updating means running this again.\n'
-	printf 'Choose [link/copy]: '
-	read -r answer </dev/tty || answer="link"
-	case "$answer" in
-	[Cc]*) MODE="copy" ;;
-	*) MODE="link" ;;
-	esac
-	state_set mode "$MODE"
-fi
-info "Mode: ${B}${MODE}${R}"
-
-# The location is free but not movable: every symlink stow made encodes the
-# absolute path it was made from. Running from a second location would leave the
-# first one's links behind, dangling and unowned, so it is refused while the old
-# directory is still there to unstow from. If it is gone, the links are already
-# broken and there is nothing left to clean up, so the new path is adopted with
-# a warning. See docs/adr/0002-stow-contract.md
-# Copy mode makes no symlinks, so it is bound to no path and records none.
-if [ "$MODE" = "link" ]; then
-	RECORDED_PATH="$(state_get dotfiles.path)"
-	if [ -n "$RECORDED_PATH" ] && [ "$RECORDED_PATH" != "$DOTFILES" ]; then
-		if [ -d "$RECORDED_PATH" ]; then
-			die "This machine's modules are linked from $RECORDED_PATH.
-  Unstow there first (see the README), or delete the dotfiles.path line in $STATE."
-		fi
-		warn "$RECORDED_PATH is gone; any links it made are already broken. Adopting $DOTFILES."
-	fi
-	state_set dotfiles.path "$DOTFILES"
-fi
-
-HEADLESS="$(state_get headless)"
-if [ -z "$HEADLESS" ]; then
-	# Declared, never detected. A machine with a display today may be
-	# administered over ssh tomorrow; guessing would flip-flop.
-	printf 'Is this machine headless (no graphical session)? [y/N] '
-	read -r answer </dev/tty || answer="n"
-	case "$answer" in
-	[Yy]*) HEADLESS="yes" ;;
-	*) HEADLESS="no" ;;
-	esac
-	state_set headless "$HEADLESS"
-fi
-info "Headless: ${B}${HEADLESS}${R}"
-
-# ---------------------------------------------------------------------------
 # Package manager front ends
 # ---------------------------------------------------------------------------
 
@@ -280,6 +204,113 @@ bootstrap_mise() {
 }
 
 # ---------------------------------------------------------------------------
+# Machine state
+# ---------------------------------------------------------------------------
+# Which tools this machine selected, and whether it is headless. Kept in
+# $XDG_STATE_HOME so `git clean -xdf` in the repository cannot destroy it.
+
+mkdir -p "$STATE_DIR"
+[ -f "$STATE" ] || : >"$STATE"
+
+state_get() {
+	# state_get KEY -> value, empty if unset
+	awk -F'\t' -v k="$1" '$1 == k { print $2; exit }' "$STATE"
+}
+
+state_set() {
+	# state_set KEY VALUE
+	tmp="$STATE.tmp"
+	awk -F'\t' -v k="$1" '$1 != k' "$STATE" >"$tmp"
+	printf '%s\t%s\n' "$1" "$2" >>"$tmp"
+	mv "$tmp" "$STATE"
+}
+
+# Everything the arguments can get wrong is settled before a single question is
+# asked: being told "no tool called that" after answering two prompts is a poor
+# trade for the human on the other end.
+bootstrap_jq
+
+# A named tool brings along the tools its configuration integrates with: asking
+# for the zsh module and getting a prompt-less, completion-less zsh would be a
+# surprise. The list is the manifest's `with` field, one level deep only.
+EXPANDED=""
+for want in $SELECTION; do
+	jq -e --arg t "$want" 'has($t)' "$MANIFEST" >/dev/null ||
+		die "No tool called '$want' in the manifest."
+	EXPANDED="$EXPANDED $want $(jq -r --arg t "$want" '.[$t].with // [] | join(" ")' "$MANIFEST")"
+done
+
+selected_by_argument() {
+	# selected_by_argument TOOL -> true when TOOL was named or brought along
+	case " $EXPANDED " in
+	*" $1 "*) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
+# How the configuration reaches $HOME. Asked once, remembered, and skippable
+# with --link or --copy. The question states what each answer costs, because
+# getting this one wrong is the failure that looks like success: copies that no
+# `git pull` will ever update.
+RECORDED_MODE="$(state_get mode)"
+if [ -n "$MODE" ] && [ -n "$RECORDED_MODE" ] && [ "$MODE" != "$RECORDED_MODE" ]; then
+	warn "this machine is recorded as $RECORDED_MODE; installing as $MODE for this run only."
+fi
+[ -n "$MODE" ] || MODE="$RECORDED_MODE"
+if [ -z "$MODE" ]; then
+	printf '\n%sHow should the configuration reach your home directory?%s\n' "$B" "$R"
+	printf '  %slink%s  symlink it from %s. Edits write back to the repository,\n' "$B" "$R" "$DOTFILES"
+	printf '        which must then stay where it is.\n'
+	printf '  %scopy%s  copy the files. The repository can be deleted afterwards, and\n' "$B" "$R"
+	printf '        updating means running this again.\n'
+	printf 'Choose [link/copy]: '
+	# No tty means no answer: the safe default is the mode that can be undone.
+	read -r answer </dev/tty 2>/dev/null || answer="link"
+	case "$answer" in
+	[Cc]*) MODE="copy" ;;
+	*) MODE="link" ;;
+	esac
+fi
+# A flag answers the question too, so it is remembered like an answer — but only
+# when nothing is recorded yet. A flag never rewrites what the machine already
+# settled on; the warning above says so when they disagree.
+[ -n "$RECORDED_MODE" ] || state_set mode "$MODE"
+info "Mode: ${B}${MODE}${R}"
+
+# The location is free but not movable: every symlink stow made encodes the
+# absolute path it was made from. Running from a second location would leave the
+# first one's links behind, dangling and unowned, so it is refused while the old
+# directory is still there to unstow from. If it is gone, the links are already
+# broken and there is nothing left to clean up, so the new path is adopted with
+# a warning. See docs/adr/0002-stow-contract.md
+# Copy mode makes no symlinks, so it is bound to no path and records none.
+if [ "$MODE" = "link" ]; then
+	RECORDED_PATH="$(state_get dotfiles.path)"
+	if [ -n "$RECORDED_PATH" ] && [ "$RECORDED_PATH" != "$DOTFILES" ]; then
+		if [ -d "$RECORDED_PATH" ]; then
+			die "This machine's modules are linked from $RECORDED_PATH.
+  Unstow there first (see the README), or delete the dotfiles.path line in $STATE."
+		fi
+		warn "$RECORDED_PATH is gone; any links it made are already broken. Adopting $DOTFILES."
+	fi
+	state_set dotfiles.path "$DOTFILES"
+fi
+
+HEADLESS="$(state_get headless)"
+if [ -z "$HEADLESS" ]; then
+	# Declared, never detected. A machine with a display today may be
+	# administered over ssh tomorrow; guessing would flip-flop.
+	printf 'Is this machine headless (no graphical session)? [y/N] '
+	read -r answer </dev/tty 2>/dev/null || answer="n"
+	case "$answer" in
+	[Yy]*) HEADLESS="yes" ;;
+	*) HEADLESS="no" ;;
+	esac
+	state_set headless "$HEADLESS"
+fi
+info "Headless: ${B}${HEADLESS}${R}"
+
+# ---------------------------------------------------------------------------
 # The manifest loop
 # ---------------------------------------------------------------------------
 
@@ -324,26 +355,6 @@ install_tool() {
 	esac
 }
 
-bootstrap_jq
-
-# A named tool brings along the tools its configuration integrates with: asking
-# for the zsh module and getting a prompt-less, completion-less zsh would be a
-# surprise. The list is the manifest's `with` field, one level deep only.
-EXPANDED=""
-for want in $SELECTION; do
-	jq -e --arg t "$want" 'has($t)' "$MANIFEST" >/dev/null ||
-		die "No tool called '$want' in the manifest."
-	EXPANDED="$EXPANDED $want $(jq -r --arg t "$want" '.[$t].with // [] | join(" ")' "$MANIFEST")"
-done
-
-selected_by_argument() {
-	# selected_by_argument TOOL -> true when TOOL was named or brought along
-	case " $EXPANDED " in
-	*" $1 "*) return 0 ;;
-	*) return 1 ;;
-	esac
-}
-
 info "Reading $MANIFEST"
 
 # jq flattens the manifest to one tab-separated line per tool, so the loop below
@@ -369,11 +380,6 @@ jq -r --arg col "$COLUMN" '
 while IFS="$(printf '\t')" read -r tool source kind default keys; do
 	[ -z "$tool" ] && continue
 
-	# Graphical tools are skipped on a machine declared headless.
-	if [ "$kind" = "gui" ] && [ "$HEADLESS" = "yes" ]; then
-		continue
-	fi
-
 	if [ -n "$SELECTION" ]; then
 		# An argument is a one-off answer, not a new default: it decides this
 		# run only, and leaves what the machine remembers alone.
@@ -386,6 +392,14 @@ while IFS="$(printf '\t')" read -r tool source kind default keys; do
 			state_set "tool.$tool" "$selected"
 		fi
 		[ "$selected" = "yes" ] || continue
+	fi
+
+	# Graphical tools are skipped on a machine declared headless — but only
+	# after selection, so that asking for one by name is answered out loud
+	# instead of producing a run that installs nothing and says "Done."
+	if [ "$kind" = "gui" ] && [ "$HEADLESS" = "yes" ]; then
+		REPORT_SKIPPED="$(append "$REPORT_SKIPPED" "$tool")"
+		continue
 	fi
 
 	# Only selected modules are linked. A module whose tool was not selected is
@@ -473,10 +487,25 @@ for module in $SELECTED_MODULES; do
 	# A conflicting real file is moved aside, never absorbed and never
 	# discarded. Every backup is reported at the end. Both modes: a copy would
 	# overwrite what a link refuses to.
+	#
+	# A symlink that resolves to nothing is removed instead. It is a link to a
+	# repository that has moved or been deleted, it can only be one of ours, and
+	# leaving it there makes stow abort — which is what made the "old directory
+	# is gone, adopt the new path" case fail every time it was reached.
 	while read -r conflict; do
 		[ -n "$conflict" ] || continue
 		target="$HOME/$conflict"
-		if [ -e "$target" ] && [ ! -L "$target" ]; then
+		if [ -L "$target" ] && [ ! -e "$target" ]; then
+			rm -f "$target"
+			REPORT_STALE="$(append "$REPORT_STALE" "$target")"
+		elif [ -L "$target" ] && [ "$MODE" = "copy" ]; then
+			# `cp` follows a symlink and writes through it — into whatever
+			# repository the link points at. That is the corruption `--adopt`
+			# is banned for, arriving by another route, so the link goes first
+			# and is reported like any other thing moved out of the way.
+			REPORT_STALE="$(append "$REPORT_STALE" "$target (was a link to $(readlink "$target"))")"
+			rm -f "$target"
+		elif [ -e "$target" ] && [ ! -L "$target" ]; then
 			mv "$target" "$target.bak"
 			REPORT_BACKUPS="$(append "$REPORT_BACKUPS" "$target.bak")"
 		fi
@@ -534,7 +563,7 @@ if [ -n "$REQUIRED_KEYS" ]; then
 			[ -n "$key" ] && printf '  - %s\n' "$key"
 		done
 		printf 'Fail this install when they are missing, rather than only reporting it? [y/N] '
-		read -r answer </dev/tty || answer="n"
+		read -r answer </dev/tty 2>/dev/null || answer="n"
 		case "$answer" in
 		[Yy]*) KEYS_FATAL="yes" ;;
 		*) KEYS_FATAL="no" ;;
@@ -571,8 +600,10 @@ printf '%sInstall report%s\n' "$B" "$R"
 
 section "Install by hand (see docs/setup/)" "$REPORT_MANUAL"
 section "Not available on this distribution" "$REPORT_UNSUPPORTED"
+section "Skipped — graphical, and this machine is headless" "$REPORT_SKIPPED"
 section "Installed, but needs setup steps" "$REPORT_DOCS"
 section "Existing files moved aside" "$REPORT_BACKUPS"
+section "Links removed (broken, or replaced by a copy)" "$REPORT_STALE"
 if [ "$MODE" = "copy" ] && [ -n "$SELECTED_MODULES" ]; then
 	printf '\n%sCopied, not linked.%s Editing these files changes nothing in %s, and\n' "$B" "$R" "$DOTFILES"
 	printf 'pulling the repository will not update them — run this again for that.\n'
@@ -597,10 +628,11 @@ fi
 
 count() { printf '%s\n' "$1" | awk 'NF { n++ } END { print n + 0 }'; }
 
-printf '\n%s%s manual, %s unsupported, %s need setup, %s backed up, %s failed%s\n' \
+printf '\n%s%s manual, %s unsupported, %s skipped, %s need setup, %s backed up, %s failed%s\n' \
 	"$B" \
 	"$(count "$REPORT_MANUAL")" \
 	"$(count "$REPORT_UNSUPPORTED")" \
+	"$(count "$REPORT_SKIPPED")" \
 	"$(count "$REPORT_DOCS")" \
 	"$(count "$REPORT_BACKUPS")" \
 	"$(count "$REPORT_FAILED")" \
