@@ -78,7 +78,7 @@
   autoSetupRemote = true
   default = current
   followTags = true
-  gpgSign = true
+  # gpgSign = true  # GitHub does not support signed pushes, so this is disabled by default.
 
 [pull]
   default = current
