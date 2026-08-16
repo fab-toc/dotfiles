@@ -1,0 +1,100 @@
+{
+  "zsh": { "arch": "zsh", "debian": "zsh", "kind": "cli", "default": true },
+  "zsh-autosuggestions": { "arch": "zsh-autosuggestions", "debian": "zsh-autosuggestions", "kind": "cli", "default": true },
+  "zsh-syntax-highlighting": { "arch": "zsh-syntax-highlighting", "debian": "zsh-syntax-highlighting", "kind": "cli", "default": true },
+  "zsh-completions": {
+    "arch": "zsh-completions",
+    "debian": "unsupported",
+    "kind": "cli",
+    "default": true,
+    "note": "No apt package. The zsh module guards on the completion file being present, so its absence only costs completions."
+  },
+  "starship": { "arch": "starship", "debian": "starship", "kind": "cli", "default": true },
+  "stow": { "arch": "stow", "debian": "stow", "kind": "cli", "default": true, "note": "Required by link mode; copy mode does not use it." },
+  "git": {
+    "arch": "git",
+    "debian": "git",
+    "kind": "cli",
+    "default": true,
+    "requires_keys": ["~/.ssh/github_key"],
+    "note": "The git module sets commit.gpgsign = true, so the signing key must exist before any commit succeeds."
+  },
+  "github-cli": { "arch": "github-cli", "debian": "gh", "kind": "cli", "default": true, "note": "Packaged under different names: github-cli on Arch, gh on Debian." },
+  "openssh": {
+    "arch": "openssh",
+    "debian": "openssh-client",
+    "kind": "cli",
+    "default": true,
+    "requires_keys": ["~/.ssh/github_key", "~/.ssh/its_servers"],
+    "note": "Debian splits client and server; only the client is wanted here."
+  },
+  "less": { "arch": "less", "debian": "less", "kind": "cli", "default": true },
+  "neovim": {
+    "arch": "neovim",
+    "debian": "mise",
+    "kind": "cli",
+    "default": true,
+    "note": "apt's neovim trails the releases the configuration expects, so Debian and Ubuntu take the mise rung."
+  },
+  "bat": { "arch": "bat", "debian": "bat", "kind": "cli", "default": true, "note": "Debian installs the binary as batcat; the zsh module guards on which name exists." },
+  "fd": { "arch": "fd", "debian": "fd-find", "kind": "cli", "default": true, "note": "Debian installs the binary as fdfind; the zsh module guards on which name exists." },
+  "ripgrep": { "arch": "ripgrep", "debian": "ripgrep", "kind": "cli", "default": true },
+  "eza": { "arch": "eza", "debian": "mise", "kind": "cli", "default": true, "note": "Absent from apt on the Debian and Ubuntu releases in use." },
+  "fzf": { "arch": "fzf", "debian": "fzf", "kind": "cli", "default": true },
+  "zoxide": { "arch": "zoxide", "debian": "zoxide", "kind": "cli", "default": true },
+  "fastfetch": { "arch": "fastfetch", "debian": "fastfetch", "kind": "cli", "default": true },
+  "uv": { "arch": "uv", "debian": "mise", "kind": "cli", "default": true, "note": "Absent from apt." },
+  "mise": {
+    "arch": "manual",
+    "debian": "mise",
+    "kind": "cli",
+    "default": true,
+    "note": "Deliberately not installed on Arch: it would compete with pacman over the same binaries for no gain. See ADR-0008. On Debian the installer bootstraps it from mise's own apt repository."
+  },
+  "nvm": {
+    "arch": "nvm",
+    "debian": "excluded",
+    "kind": "cli",
+    "default": true,
+    "note": "Arch packages nvm and it is the native way to juggle Node versions there; on Debian mise already covers Node, so a second manager would be redundant."
+  },
+  "nodejs": {
+    "arch": "excluded",
+    "debian": "mise",
+    "kind": "cli",
+    "default": true,
+    "note": "Excluded on Arch because nvm provides Node there."
+  },
+  "pnpm": { "arch": "pnpm", "debian": "mise", "kind": "cli", "default": true },
+  "jdk-openjdk": { "arch": "jdk-openjdk", "debian": "default-jdk", "kind": "cli", "default": false },
+  "docker": { "arch": "docker", "debian": "docker.io", "kind": "cli", "default": false },
+  "docker-compose": { "arch": "docker-compose", "debian": "docker-compose", "kind": "cli", "default": false },
+  "libvirt": { "arch": "libvirt", "debian": "libvirt-daemon-system", "kind": "cli", "default": false },
+  "qemu": { "arch": "qemu-full", "debian": "qemu-system-x86", "kind": "cli", "default": false },
+  "swtpm": { "arch": "swtpm", "debian": "swtpm", "kind": "cli", "default": false },
+  "virt-manager": { "arch": "virt-manager", "debian": "virt-manager", "kind": "gui", "default": false },
+  "ghostty": {
+    "arch": "ghostty",
+    "debian": "manual",
+    "kind": "gui",
+    "default": false,
+    "note": "Upstream prebuilds for macOS only, leaving a source build or a community .deb."
+  },
+  "zed": { "arch": "zed", "debian": "manual", "kind": "gui", "default": false, "note": "Upstream's Linux route is its own install script, which is a document's business and not the installer's." },
+  "android-studio": { "arch": "android-studio", "debian": "manual", "kind": "gui", "default": false, "note": "An AUR build on Arch; a tarball from Google elsewhere." },
+  "zen-browser": { "arch": "zen-browser-bin", "debian": "manual", "kind": "gui", "default": false },
+  "yay": {
+    "arch": "yay",
+    "debian": "unsupported",
+    "kind": "cli",
+    "default": true,
+    "note": "The AUR front end, bootstrapped from base-devel and makepkg before any other Arch row is read. Meaningless on Debian."
+  },
+  "jq": {
+    "arch": "jq",
+    "debian": "jq",
+    "kind": "cli",
+    "default": true,
+    "note": "The installer reads this manifest with jq, so jq is installed before the manifest can be read. Its row is documentary. See ADR-0006."
+  }
+}

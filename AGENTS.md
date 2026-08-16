@@ -23,9 +23,9 @@ Everything else follows from these:
 ## Layout
 
 - `modules/` — one directory per tool's configuration, laid out relative to `$HOME`. Everything stow ever sees.
-- `tools.tsv` — the manifest. Tab-separated, `tool arch debian kind default`.
+- `tools.json` — the manifest. An object keyed by tool name; read with `jq`, which the installer installs first. See ADR-0006.
 - `docs/adr/` — decisions.
-- `docs/setup/` — manual installs and post-install steps. **Filenames must match the tool name in `tools.tsv` exactly**: the installer flags a tool as needing setup by testing for `docs/setup/<tool>.md`, so a mismatched name silently disables the report.
+- `docs/setup/` — manual installs and post-install steps. **Filenames must match the tool name in `tools.json` exactly**: the installer flags a tool as needing setup by testing for `docs/setup/<tool>.md`, so a mismatched name silently disables the report.
 - `bootstrap.sh` — the piped entry point. `install.sh` — the installer.
 
 Nothing outside `modules/` is ever symlinked into `$HOME`.

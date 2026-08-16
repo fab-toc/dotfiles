@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installer. POSIX sh, not bash: Debian's /bin/sh is dash.
 #
-# Reads tools.tsv, installs each selected tool from the source named for this
+# Reads tools.json, installs each selected tool from the source named for this
 # distribution, stows the modules that have one, and ends with a report of
 # everything still outstanding. The report is the only thing standing in for a
 # test suite — see docs/adr/0007-testing-deferred.md
@@ -9,7 +9,7 @@
 set -eu
 
 DOTFILES="$HOME/.dotfiles"
-MANIFEST="$DOTFILES/tools.tsv"
+MANIFEST="$DOTFILES/tools.json"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
 STATE="$STATE_DIR/state"
 
@@ -21,6 +21,11 @@ REPORT_DOCS=""
 REPORT_BACKUPS=""
 REPORT_FAILED=""
 EXIT_CODE=0
+
+# Tools whose row asks for SSH keys contribute to this list only when they are
+# actually selected, so installing one module never asks about another's keys.
+REQUIRED_KEYS=""
+SELECTED_GIT="no"
 
 # ---------------------------------------------------------------------------
 # Output
@@ -155,6 +160,16 @@ bootstrap_yay() {
 	rm -rf "$tmp"
 }
 
+# jq reads the manifest, so it is installed before the manifest can be read.
+# Its package name is the one thing that cannot come from the manifest without
+# a chicken-and-egg problem, so it is hardcoded here — and nowhere else.
+# See docs/adr/0006-manifest-as-json.md
+bootstrap_jq() {
+	command -v jq >/dev/null 2>&1 && return 0
+	info "Installing jq, which is needed to read the manifest"
+	pkg_install jq || die "jq could not be installed, so $MANIFEST cannot be read."
+}
+
 # mise is the second rung on Debian and Ubuntu, installed from its own apt
 # repository — never by curl-piping its installer.
 # See docs/adr/0001-tool-source-ladder.md
@@ -212,18 +227,32 @@ install_tool() {
 	esac
 }
 
+bootstrap_jq
+
 info "Reading $MANIFEST"
 
-# The header line is skipped by name rather than by counting lines, so
-# reordering the file cannot silently install a tool called "tool".
-while IFS="$(printf '\t')" read -r tool arch debian kind default; do
-	[ "$tool" = "tool" ] && continue
-	[ -z "$tool" ] && continue
+# jq flattens the manifest to one tab-separated line per tool, so the loop below
+# stays the plain `read` it always was. Only the column for this distribution is
+# emitted; `note` is never read — it exists for humans reading the file on
+# GitHub. jq preserves the manifest's key order, so yay still comes before the
+# AUR rows that need it.
+ROWS="$(mktemp)"
+trap 'rm -f "$ROWS"' EXIT INT TERM
+jq -r --arg col "$COLUMN" '
+	to_entries[]
+	| [ .key,
+	    .value[$col],
+	    .value.kind,
+	    (if .value.default then "yes" else "no" end),
+	    (.value.requires_keys // [] | join(" "))
+	  ]
+	| @tsv
+' "$MANIFEST" >"$ROWS" || die "$MANIFEST is not valid JSON, or is missing a field."
 
-	case "$COLUMN" in
-	arch) source="$arch" ;;
-	debian) source="$debian" ;;
-	esac
+# The manifest is data read once; the loop below is where every decision about
+# it is made.
+while IFS="$(printf '\t')" read -r tool source kind default keys; do
+	[ -z "$tool" ] && continue
 
 	# Graphical tools are skipped on a machine declared headless.
 	if [ "$kind" = "gui" ] && [ "$HEADLESS" = "yes" ]; then
@@ -237,6 +266,15 @@ while IFS="$(printf '\t')" read -r tool arch debian kind default; do
 		state_set "tool.$tool" "$selected"
 	fi
 	[ "$selected" = "yes" ] || continue
+
+	# Only a selected tool's keys are ever asked about.
+	for key in $keys; do
+		REQUIRED_KEYS="$(append "$REQUIRED_KEYS" "$key")"
+	done
+	[ "$tool" = "git" ] && SELECTED_GIT="yes"
+
+	# jq is already installed above; its row is documentary.
+	[ "$tool" = "jq" ] && continue
 
 	# yay is itself a row, and it is what installs AUR rows, so it comes first.
 	if [ "$tool" = "yay" ] && [ "$COLUMN" = "arch" ]; then
@@ -259,7 +297,7 @@ while IFS="$(printf '\t')" read -r tool arch debian kind default; do
 	if [ -f "$DOTFILES/docs/setup/$tool.md" ]; then
 		REPORT_DOCS="$(append "$REPORT_DOCS" "$tool")"
 	fi
-done <"$MANIFEST"
+done <"$ROWS"
 
 # ---------------------------------------------------------------------------
 # Stow
@@ -301,14 +339,42 @@ done
 # ---------------------------------------------------------------------------
 # SSH keys
 # ---------------------------------------------------------------------------
-# commit.gpgsign = true means every git commit fails until the signing key is
-# present, so this is loud and it fails the run.
+# Which keys are expected is the manifest's business, not this script's: a row's
+# requires_keys names them, and only selected rows contribute. Whether a missing
+# key is fatal is asked once and remembered — the question names its own effect
+# rather than asking who you are, because the answer to "are you the owner?"
+# tells nobody what it changes.
 # See docs/adr/0004-manual-ssh-key-retrieval.md
 
 MISSING_KEYS=""
-for key in "$HOME/.ssh/github_key" "$HOME/.ssh/its_servers"; do
-	[ -f "$key" ] || MISSING_KEYS="$(append "$MISSING_KEYS" "$key")"
-done
+if [ -n "$REQUIRED_KEYS" ]; then
+	# The same key can be named by more than one row.
+	REQUIRED_KEYS="$(printf '%s\n' "$REQUIRED_KEYS" | sort -u)"
+
+	KEYS_FATAL="$(state_get keys_fatal)"
+	if [ -z "$KEYS_FATAL" ]; then
+		printf '\n%sThe tools you selected expect these SSH keys:%s\n' "$B" "$R"
+		printf '%s\n' "$REQUIRED_KEYS" | while read -r key; do
+			[ -n "$key" ] && printf '  - %s\n' "$key"
+		done
+		printf 'Fail this install when they are missing, rather than only reporting it? [y/N] '
+		read -r answer </dev/tty || answer="n"
+		case "$answer" in
+		[Yy]*) KEYS_FATAL="yes" ;;
+		*) KEYS_FATAL="no" ;;
+		esac
+		state_set keys_fatal "$KEYS_FATAL"
+	fi
+
+	while read -r key; do
+		[ -n "$key" ] || continue
+		# The manifest writes ~ because it is data, not a shell.
+		expanded="$(printf '%s' "$key" | sed "s|^~|$HOME|")"
+		[ -f "$expanded" ] || MISSING_KEYS="$(append "$MISSING_KEYS" "$expanded")"
+	done <<EOF
+$REQUIRED_KEYS
+EOF
+fi
 
 # ---------------------------------------------------------------------------
 # Closing report
@@ -334,13 +400,18 @@ section "Existing files moved aside" "$REPORT_BACKUPS"
 section "Failed" "$REPORT_FAILED"
 
 if [ -n "$MISSING_KEYS" ]; then
-	section "Missing SSH keys — download from the Proton Pass web vault" "$MISSING_KEYS"
-	printf '\n%sUntil these exist, every git commit will fail (commit.gpgsign = true).%s\n' "$RED" "$R"
-	EXIT_CODE=1
+	section "Missing SSH keys — see docs/setup/openssh.md" "$MISSING_KEYS"
+	if [ "$KEYS_FATAL" = "yes" ]; then
+		printf '\n%sUntil these exist, every git commit will fail (commit.gpgsign = true).%s\n' "$RED" "$R"
+		EXIT_CODE=1
+	fi
 fi
 
-if [ -f "$HOME/.config/git/config" ] && [ ! -f "$HOME/.config/git/config.local" ]; then
-	printf '\n%sgit identity is not configured%s — see docs/setup/git.md\n' "$YEL" "$R"
+# Driven by what was selected, never by which files happen to be lying around:
+# behaviour that changes because a file was spotted is behaviour nobody can
+# predict from the arguments they typed.
+if [ "$SELECTED_GIT" = "yes" ]; then
+	printf '\n%sgit identity and signing key are not in this repository%s — see docs/setup/git.md\n' "$YEL" "$R"
 fi
 
 count() { printf '%s\n' "$1" | awk 'NF { n++ } END { print n + 0 }'; }

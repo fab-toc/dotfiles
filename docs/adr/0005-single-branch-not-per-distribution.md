@@ -22,4 +22,4 @@ Alias _names_ are part of the configuration contract and are identical everywher
 
 Where a shared file cannot express the difference — identity, secrets — it belongs in an untracked local config instead.
 
-Generated configuration is rejected for the same reason: a file written at install time is invisible, drifts from the repository, and differs per machine by construction. This extends to documentation that duplicates data: a README table generated from `tools.tsv` and committed would drift the same way, so the README links to the manifest instead.
+Generated configuration is rejected for the same reason: a file written at install time is invisible, drifts from the repository, and differs per machine by construction. This extends to documentation that duplicates data: a README table generated from `tools.json` and committed would drift the same way, so the README links to the manifest instead.

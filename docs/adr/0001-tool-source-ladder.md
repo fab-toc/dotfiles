@@ -7,7 +7,7 @@ The ladder is **not the same on every distribution**:
 - **Arch**: official repositories, then the AUR via `yay`.
 - **Debian and Ubuntu**: apt, then [mise](https://mise.jdx.dev/).
 
-Every ladder ends in one of three terminal sources: `manual` (installable by hand, see `docs/setup/<tool>.md`), `excluded` (deliberately not installed here because the other ladder covers the need), or `unsupported` (cannot be had here at all). Each tool's source per distribution is a cell in `tools.tsv`; see ADR-0006.
+Every ladder ends in one of three terminal sources: `manual` (installable by hand, see `docs/setup/<tool>.md`), `excluded` (deliberately not installed here because the other ladder covers the need), or `unsupported` (cannot be had here at all). Each tool's source per distribution is a field in `tools.json`; see ADR-0006.
 
 ## Why mise is a rung on Debian and not on Arch
 
@@ -26,7 +26,7 @@ An earlier version of this ADR claimed mise was "not packaged for Debian or Ubun
 
 ## When a tool takes the mise rung
 
-The rule is "absent from apt, or too old for features actually in use". Whether a version is too old is a judgement no script can make, so it is decided once, by hand, and written into the cell — `tools.tsv` holds either a package name or the literal `mise`. The installer does no version comparison. The cost is that a Debian release which catches up keeps using mise until the row is edited; that is preferred over version arithmetic that is wrong silently.
+The rule is "absent from apt, or too old for features actually in use". Whether a version is too old is a judgement no script can make, so it is decided once, by hand, and written into the field — `tools.json` holds either a package name or the literal `mise`. The installer does no version comparison. The cost is that a Debian release which catches up keeps using mise until the row is edited; that is preferred over version arithmetic that is wrong silently.
 
 ## Considered Options
 

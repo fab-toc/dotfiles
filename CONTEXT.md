@@ -25,7 +25,7 @@ A piece of software the repository knows about. A tool may have a module, or may
 _Avoid_: program, app, dependency
 
 **Manifest**:
-`tools.tsv`, the registry of every tool in the environment. One row per tool, with a source for each distribution, whether it is graphical, and whether it is selected by default. Whether a tool has a module is not recorded — the presence of `modules/<tool>/` is the fact.
+`tools.json`, the registry of every tool in the environment. One entry per tool, with a source for each distribution, whether it is graphical, whether it is selected by default, optionally why it is what it is, and optionally which SSH keys its configuration expects. Whether a tool has a module is not recorded — the presence of `modules/<tool>/` is the fact.
 _Avoid_: package list, config file, install list
 
 **Source**:

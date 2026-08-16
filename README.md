@@ -44,7 +44,7 @@ from anywhere else.
 
 ## What the installer does
 
-Reads [`tools.tsv`](./tools.tsv), installs each selected tool from the source
+Reads [`tools.json`](./tools.json), installs each selected tool from the source
 named for your distribution, links the modules with `stow --no-folding`, and
 ends with a report of everything still outstanding.
 
@@ -54,9 +54,14 @@ reported, never pulled into the repository over tracked configuration.
 The report is the whole safety net — there is no test suite, knowingly
 ([ADR-0007](./docs/adr/0007-testing-deferred.md)) — so it lists tools to install
 by hand, tools unavailable on your distribution, tools that installed but need
-setup steps, files moved aside, and missing SSH keys. It exits non-zero only if
-a module failed to link or the SSH keys are absent: outstanding manual work is
+setup steps, files moved aside, and missing SSH keys. Outstanding manual work is
 reported, not treated as failure.
+
+Which SSH keys a tool expects is declared in its manifest entry, and only the
+tools you selected are ever checked. The installer asks once per machine whether
+a missing key should fail the run — say yes on a machine where `commit.gpgsign`
+must never silently start failing, no if you are installing someone else's
+configuration.
 
 Re-runs are silent. Which tools a machine selected, and whether it is headless,
 are remembered in `$XDG_STATE_HOME/dotfiles/state` — outside the repository,
@@ -64,8 +69,8 @@ where `git clean -xdf` cannot reach them.
 
 ## Where tools come from
 
-Each tool has a row in [`tools.tsv`](./tools.tsv) with a source per
-distribution. GitHub renders it as a table. A source is a package name or one of:
+Each tool has an entry in [`tools.json`](./tools.json) with a source per
+distribution, and an optional `note` saying why. A source is a package name or one of:
 
 | Source        | Meaning                                                            |
 | ------------- | ------------------------------------------------------------------ |
@@ -85,7 +90,7 @@ has a module is not recorded: the presence of `modules/<tool>/` is the fact.
 
 - `modules/` — one directory per tool, laid out relative to `$HOME`. The only
   thing stow ever sees; nothing outside it is ever symlinked.
-- `tools.tsv` — the manifest.
+- `tools.json` — the manifest.
 - `docs/adr/` — the decisions, and the alternatives already rejected.
 - `docs/setup/` — the manual and post-install steps.
 - [`CONTEXT.md`](./CONTEXT.md) — the vocabulary. Read it first.
