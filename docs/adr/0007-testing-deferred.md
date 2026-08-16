@@ -20,7 +20,7 @@ That last category catches the tools which install cleanly but still need a huma
 
 `excluded` tools are never listed. They are working as intended, and a report that mentions them trains you to skim it.
 
-The run **exits zero with outstanding `manual` items** and non-zero only if a module failed to stow or the SSH keys are absent. The distinction is "did the installer do its job" versus "is the machine finished": a `manual` item is correctly-reported work, and failing the run on it would teach you to ignore the exit code. Missing keys are different because ADR-0004 makes every commit fail until they are present, so the machine is not usable. A one-line summary count comes last, since a report you must scroll up for is a report you will not read.
+The run **exits zero with outstanding `manual` items** and non-zero if a module failed to install, a package failed to install, or the SSH keys are absent and were declared fatal. The distinction is "did the installer do its job" versus "is the machine finished": a `manual` item is correctly-reported work, and failing the run on it would teach you to ignore the exit code. A package that could not be installed is the other thing entirely — the installer tried and did not succeed — and for a while it was merely counted in the report while the run still printed a green "Done." That is precisely the silent success described below, produced by the report that was supposed to prevent it. Missing keys are different because ADR-0004 makes every commit fail until they are present, so the machine is not usable. A one-line summary count comes last, since a report you must scroll up for is a report you will not read.
 
 ## Consequences
 

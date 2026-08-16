@@ -404,7 +404,10 @@ while IFS="$(printf '\t')" read -r tool source kind default keys; do
 
 	# yay is itself a row, and it is what installs AUR rows, so it comes first.
 	if [ "$tool" = "yay" ] && [ "$COLUMN" = "arch" ]; then
-		bootstrap_yay || REPORT_FAILED="$(append "$REPORT_FAILED" "yay")"
+		if ! bootstrap_yay; then
+			REPORT_FAILED="$(append "$REPORT_FAILED" "yay")"
+			EXIT_CODE=1
+		fi
 		continue
 	fi
 	# mise's row is documentary: on Debian the bootstrap above installs it, on
@@ -415,7 +418,11 @@ while IFS="$(printf '\t')" read -r tool source kind default keys; do
 		continue
 	fi
 
-	install_tool "$tool" "$source" || true
+	# A tool that could not be installed is a failed run, not a footnote: the
+	# report already said so, and exiting 0 anyway is the silent success this
+	# project treats as its worst outcome. Manual and unsupported are not
+	# failures and never reach here — install_tool returns 0 for both.
+	install_tool "$tool" "$source" || EXIT_CODE=1
 
 	# Any tool with a setup document needs a human step even when its package
 	# installed cleanly — group membership, sockets, ACLs. The file's existence

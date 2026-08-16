@@ -90,8 +90,12 @@ that never arrived.
 The report is the whole safety net — there is no test suite, knowingly
 ([ADR-0007](./docs/adr/0007-testing-deferred.md)) — so it lists tools to install
 by hand, tools unavailable on your distribution, tools that installed but need
-setup steps, files moved aside, and missing SSH keys. Outstanding manual work is
-reported, not treated as failure.
+setup steps, files moved aside, and missing SSH keys.
+
+Outstanding manual work is reported, not treated as failure — it exits zero with
+`manual` items pending. Anything the installer *tried and failed* to do fails the
+run: a package that would not install, a module that would not link or copy, or
+missing SSH keys you asked it to treat as fatal.
 
 Which SSH keys a tool expects is declared in its manifest entry, and only the
 tools you selected are ever checked. The installer asks once per machine whether
