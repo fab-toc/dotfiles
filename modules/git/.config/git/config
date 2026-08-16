@@ -4,63 +4,53 @@
 [include]
   path = config.local
 
+[help]
+  autoCorrect = immediate  # run the suggested correction command immediately
+
 [core]
   compression = 9
-  preloadindex = true
-  # editor deliberately unset: inherits $EDITOR, which is nvim everywhere
-  # so that headless machines get a working editor too.
-
-[apply]
-  whitespace = error
-
-[help]
-  autocorrect = prompt
+  preloadIndex = true
+  # fsmonitor = true
+  # untrackedCache = true
 
 [init]
   defaultBranch = main
-
-[status]
-  branch = true
-  showStash = true
-  showUntrackedFiles = all
 
 [branch]
   sort = -committerdate
 
 [diff]
   algorithm = histogram
-  colorMoved = plain
   mnemonicPrefix = true
-  renames = true
+  renames = copies
   context = 3
   interHunkContext = 10
+  wsErrorHighlight = all
 
-# [advice]
-#   addEmptyPathspec = false
+[status]
+  branch = true
+  # short = true
+  showStash = true
+  showUntrackedFiles = all
 
-[column]
-  ui = auto
+[log]
+  abbrevCommit = true
+  # graphColors  = blue,yellow,cyan,magenta,green,red
 
-# No pager is configured here on purpose. Git configuration cannot test
-# whether a binary exists — includeIf supports only gitdir:, onbranch: and
-# hasconfig: — so an external pager named here breaks `git diff` outright on
-# any machine lacking it. See docs/adr/0003-no-zsh-plugin-manager.md
-[interactive]
-  singlekey = true
+[commit]
+  gpgSign = true
+  verbose = true
 
-[fetch]
-  prune = true
-  pruneTags = true
-  all = true
+[tag]
+  sort = version:refname
+  gpgSign = true
 
-[push]
-  default = current
-  autoSetupRemote = true
-  followTags = true
+[merge]
+  conflictStyle = zdiff3  # show all versions in conflicts
 
-[pull]
-  default = current
-  rebase = true
+[rerere]
+  enabled = true
+  autoUpdate = true
 
 [rebase]
   autoStash = true
@@ -68,20 +58,50 @@
   updateRefs = true
   missingCommitsCheck = warn
 
-[log]
-  abbrevCommit = true
+
+# ===========================
+# Integrity & Fetching
+# ===========================
+[transfer]
+  fsckObjects = true
+
+[receive]
+  fsckObjects = true
+
+[fetch]
+  all = true
+  prune = true
+  pruneTags = true
+  fsckObjects = true
+
+[push]
+  autoSetupRemote = true
+  default = current
+  followTags = true
+  gpgSign = true
+
+[pull]
+  default = current
+  # rebase = true
 
 [gpg]
   format = ssh
 
-[commit]
-  gpgsign = true
 
-[tag]
-  sort = version:refname
-  gpgsign = true
+# No pager is configured here on purpose. Git configuration cannot test
+# whether a binary exists — includeIf supports only gitdir:, onbranch: and
+# hasconfig: — so an external pager named here breaks `git diff` outright on
+# any machine lacking it. See docs/adr/0003-no-zsh-plugin-manager.md
+[interactive]
+  singleKey = true
 
+[column]
+  ui = auto
+
+
+# ===========================
 # URL shortcuts
+# ===========================
 [url "git@github.com:"]
   insteadOf = "gh:"
 
