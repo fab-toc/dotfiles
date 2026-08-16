@@ -1,9 +1,9 @@
 # Themes
-theme = dark:Nord,light:Nord Light
+theme = dark:Gruvbox Dark Hard,light:Gruvbox Light Hard
 
 # Font Settings
 font-family = JetBrainsMono Nerd Font Mono
-font-size = 10
+font-size = 11
 
 # Restart a new shell for each tab and window
 gtk-single-instance = false
