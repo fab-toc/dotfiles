@@ -74,8 +74,11 @@ append() {
 # obscure enough that people get it wrong.
 
 SELECTION="${DOTFILES_MODULES:-}"
+MODE="${DOTFILES_MODE:-}"
 for arg in "$@"; do
 	case "$arg" in
+	--link) MODE="link" ;;
+	--copy) MODE="copy" ;;
 	-*) die "Unknown option: $arg" ;;
 	*) SELECTION="$SELECTION $arg" ;;
 	esac
@@ -117,7 +120,7 @@ else
 	[ -f "$DOTFILES/install.sh" ] ||
 		die "$DOTFILES/install.sh is missing; the clone looks incomplete."
 
-	DOTFILES_MODULES="$SELECTION" exec sh "$DOTFILES/install.sh"
+	DOTFILES_MODULES="$SELECTION" DOTFILES_MODE="$MODE" exec sh "$DOTFILES/install.sh"
 fi
 
 MANIFEST="$DOTFILES/tools.json"
@@ -161,21 +164,47 @@ state_set() {
 	mv "$tmp" "$STATE"
 }
 
+# How the configuration reaches $HOME. Asked once, remembered, and skippable
+# with --link or --copy. The question states what each answer costs, because
+# getting this one wrong is the failure that looks like success: copies that no
+# `git pull` will ever update.
+if [ -z "$MODE" ]; then
+	MODE="$(state_get mode)"
+fi
+if [ -z "$MODE" ]; then
+	printf '\n%sHow should the configuration reach your home directory?%s\n' "$B" "$R"
+	printf '  %slink%s  symlink it from %s. Edits write back to the repository,\n' "$B" "$R" "$DOTFILES"
+	printf '        which must then stay where it is.\n'
+	printf '  %scopy%s  copy the files. The repository can be deleted afterwards, and\n' "$B" "$R"
+	printf '        updating means running this again.\n'
+	printf 'Choose [link/copy]: '
+	read -r answer </dev/tty || answer="link"
+	case "$answer" in
+	[Cc]*) MODE="copy" ;;
+	*) MODE="link" ;;
+	esac
+	state_set mode "$MODE"
+fi
+info "Mode: ${B}${MODE}${R}"
+
 # The location is free but not movable: every symlink stow made encodes the
 # absolute path it was made from. Running from a second location would leave the
 # first one's links behind, dangling and unowned, so it is refused while the old
 # directory is still there to unstow from. If it is gone, the links are already
 # broken and there is nothing left to clean up, so the new path is adopted with
 # a warning. See docs/adr/0002-stow-contract.md
-RECORDED_PATH="$(state_get dotfiles.path)"
-if [ -n "$RECORDED_PATH" ] && [ "$RECORDED_PATH" != "$DOTFILES" ]; then
-	if [ -d "$RECORDED_PATH" ]; then
-		die "This machine's modules are linked from $RECORDED_PATH.
+# Copy mode makes no symlinks, so it is bound to no path and records none.
+if [ "$MODE" = "link" ]; then
+	RECORDED_PATH="$(state_get dotfiles.path)"
+	if [ -n "$RECORDED_PATH" ] && [ "$RECORDED_PATH" != "$DOTFILES" ]; then
+		if [ -d "$RECORDED_PATH" ]; then
+			die "This machine's modules are linked from $RECORDED_PATH.
   Unstow there first (see the README), or delete the dotfiles.path line in $STATE."
+		fi
+		warn "$RECORDED_PATH is gone; any links it made are already broken. Adopting $DOTFILES."
 	fi
-	warn "$RECORDED_PATH is gone; any links it made are already broken. Adopting $DOTFILES."
+	state_set dotfiles.path "$DOTFILES"
 fi
-state_set dotfiles.path "$DOTFILES"
 
 HEADLESS="$(state_get headless)"
 if [ -z "$HEADLESS" ]; then
@@ -397,25 +426,46 @@ while IFS="$(printf '\t')" read -r tool source kind default keys; do
 done <"$ROWS"
 
 # ---------------------------------------------------------------------------
-# Stow
+# Installing the modules
 # ---------------------------------------------------------------------------
-# --no-folding so only files this repository tracks are linked; a folded
-# directory link would silently capture unrelated files created later.
-# Never --adopt: it pulls the machine's file into the repository, overwriting
-# tracked configuration. See docs/adr/0002-stow-contract.md
+# Link mode uses stow with --no-folding, so only files this repository tracks
+# are linked; a folded directory link would silently capture unrelated files
+# created later. Never --adopt: it pulls the machine's file into the repository,
+# overwriting tracked configuration. See docs/adr/0002-stow-contract.md
+#
+# Copy mode writes the same files as plain copies. See docs/adr/0009-copy-mode.md
+
+copy_module() {
+	# copy_module DIR -> copies DIR's tracked files into $HOME, preserving modes
+	ok=0
+	while read -r relative; do
+		[ -n "$relative" ] || continue
+		target="$HOME/$relative"
+		mkdir -p "$(dirname -- "$target")" || ok=1
+		# -p because a symlink inherits the repository's mode and a copy does
+		# not: without it every file lands as 644, which ssh refuses outright.
+		cp -p "$1/$relative" "$target" || ok=1
+	done <<EOF
+$(cd "$1" && find . -type f | sed 's|^\./||')
+EOF
+	return "$ok"
+}
 
 if [ -z "$SELECTED_MODULES" ]; then
-	info "No modules to link."
-else
+	info "No modules to install."
+elif [ "$MODE" = "link" ]; then
 	command -v stow >/dev/null 2>&1 || die "stow is required and was not installed."
 	info "Linking modules"
+else
+	info "Copying modules"
 fi
 
 for module in $SELECTED_MODULES; do
 	dir="$DOTFILES/modules/$module"
 
 	# A conflicting real file is moved aside, never absorbed and never
-	# discarded. Every backup is reported at the end.
+	# discarded. Every backup is reported at the end. Both modes: a copy would
+	# overwrite what a link refuses to.
 	while read -r conflict; do
 		[ -n "$conflict" ] || continue
 		target="$HOME/$conflict"
@@ -427,14 +477,33 @@ for module in $SELECTED_MODULES; do
 $(cd "$dir" && find . -type f | sed 's|^\./||')
 EOF
 
-	if stow --dir "$DOTFILES/modules" --target "$HOME" --no-folding "$module"; then
-		printf '%s  linked %s%s\n' "$DIM" "$module" "$R"
+	if [ "$MODE" = "link" ]; then
+		if stow --dir "$DOTFILES/modules" --target "$HOME" --no-folding "$module"; then
+			printf '%s  linked %s%s\n' "$DIM" "$module" "$R"
+		else
+			warn "stow failed for module $module"
+			REPORT_FAILED="$(append "$REPORT_FAILED" "stow: $module")"
+			EXIT_CODE=1
+		fi
 	else
-		warn "stow failed for module $module"
-		REPORT_FAILED="$(append "$REPORT_FAILED" "stow: $module")"
-		EXIT_CODE=1
+		if copy_module "$dir"; then
+			printf '%s  copied %s%s\n' "$DIM" "$module" "$R"
+		else
+			warn "copying module $module failed"
+			REPORT_FAILED="$(append "$REPORT_FAILED" "copy: $module")"
+			EXIT_CODE=1
+		fi
 	fi
 done
+
+# ~/.ssh is the one place where a wrong mode is silently fatal: ssh ignores a
+# config or key it considers world-readable, and says nothing useful about why.
+# stow's symlinks point at the repository's own modes, so this is copy mode's
+# problem alone.
+if [ "$MODE" = "copy" ] && printf '%s\n' "$SELECTED_MODULES" | grep -qx openssh; then
+	chmod 700 "$HOME/.ssh"
+	find "$HOME/.ssh" -maxdepth 1 -type f -exec chmod 600 {} +
+fi
 
 # ---------------------------------------------------------------------------
 # SSH keys
@@ -497,6 +566,11 @@ section "Install by hand (see docs/setup/)" "$REPORT_MANUAL"
 section "Not available on this distribution" "$REPORT_UNSUPPORTED"
 section "Installed, but needs setup steps" "$REPORT_DOCS"
 section "Existing files moved aside" "$REPORT_BACKUPS"
+if [ "$MODE" = "copy" ] && [ -n "$SELECTED_MODULES" ]; then
+	printf '\n%sCopied, not linked.%s Editing these files changes nothing in %s, and\n' "$B" "$R" "$DOTFILES"
+	printf 'pulling the repository will not update them — run this again for that.\n'
+	printf 'The repository can be deleted; this machine%ss record of it stays in %s.\n' "'" "$STATE"
+fi
 section "Failed" "$REPORT_FAILED"
 
 if [ -n "$MISSING_KEYS" ]; then

@@ -7,8 +7,16 @@ A public, distribution-agnostic dotfiles repository. Its purpose is that the _co
 ### Configuration
 
 **Module**:
-A directory under `modules/` holding one tool's configuration, laid out as it should appear relative to `$HOME`. The unit a person chooses to install or skip.
+A directory under `modules/` holding one tool's configuration, laid out as it should appear relative to `$HOME`, and named for that tool. The unit a person chooses to install or skip — by linking or by copying.
 _Avoid_: package (means a distro package here), stow package, dotfile
+
+**Link Mode**:
+Installing modules by symlinking them from the repository with stow. Edits to an installed file are edits to the repository, and the repository must stay where it is.
+_Avoid_: stow mode, symlink install
+
+**Copy Mode**:
+Installing modules by copying them. The repository can be deleted afterwards; nothing writes back, and updating means installing again. Everything else — packages, machine state, the report — is identical to link mode.
+_Avoid_: export, vendor, snapshot
 
 **Guard**:
 A runtime check that lets one byte-identical configuration file behave correctly whether or not a given tool is present. A guard tests for what is present — a binary, a file — never for which distribution it is running on.
@@ -61,5 +69,5 @@ A machine that is declared, never detected, to have no graphical session. Graphi
 _Avoid_: server, CLI-only, no-GUI
 
 **Backup**:
-An existing file that stow would have overwritten, moved aside to `.bak` and reported. Never silently discarded, never absorbed into this repository.
+An existing file that installing would have replaced, moved aside to `.bak` and reported before either mode touches it. Never silently discarded, never absorbed into this repository.
 _Avoid_: conflict, adopted file

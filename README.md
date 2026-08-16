@@ -65,11 +65,27 @@ machine remembers, so a later bare `./install.sh` still installs the defaults.
 ## What the installer does
 
 Reads [`tools.json`](./tools.json), installs each selected tool from the source
-named for your distribution, links the modules with `stow --no-folding`, and
+named for your distribution, installs the modules of the tools it selected, and
 ends with a report of everything still outstanding.
 
-It never uses `stow --adopt`: a conflicting file is moved to `<name>.bak` and
-reported, never pulled into the repository over tracked configuration.
+A conflicting file already in your home directory is moved to `<name>.bak` and
+reported — never overwritten, never absorbed into the repository. Link mode never
+uses `stow --adopt`, which would do exactly that.
+
+### Link or copy
+
+The installer asks once per machine, and remembers ([ADR-0009](./docs/adr/0009-copy-mode.md)):
+
+| Mode           | What it does                    | What it costs                                                     |
+| -------------- | ------------------------------- | ----------------------------------------------------------------- |
+| `--link`       | `stow --no-folding` from the repo | The repository has to stay put                                     |
+| `--copy`       | plain copies of the same files  | No write-back, no `git pull` updates, no uninstall — run it again  |
+
+Copy mode is a full install — packages, state, report — differing only in that
+last step. It exists so you can take the parts you want and delete the
+repository afterwards. The installer says so at the end of every copy run,
+because a configuration that quietly stops receiving updates is worse than one
+that never arrived.
 
 The report is the whole safety net — there is no test suite, knowingly
 ([ADR-0007](./docs/adr/0007-testing-deferred.md)) — so it lists tools to install
@@ -83,9 +99,10 @@ a missing key should fail the run — say yes on a machine where `commit.gpgsign
 must never silently start failing, no if you are installing someone else's
 configuration.
 
-Re-runs are silent. Which tools a machine selected, and whether it is headless,
-are remembered in `$XDG_STATE_HOME/dotfiles/state` — outside the repository,
-where `git clean -xdf` cannot reach them.
+Re-runs are silent. Which tools a machine selected, whether it is headless, which
+mode it uses and where it installed from are remembered in
+`$XDG_STATE_HOME/dotfiles/state` — outside the repository, where `git clean -xdf`
+cannot reach them.
 
 ## Where tools come from
 
@@ -108,8 +125,8 @@ has a module is not recorded: the presence of `modules/<tool>/` is the fact.
 
 ## Layout
 
-- `modules/` — one directory per tool, laid out relative to `$HOME`. The only
-  thing stow ever sees; nothing outside it is ever symlinked.
+- `modules/` — one directory per tool, named for it and laid out relative to
+  `$HOME`. The only thing ever installed into your home directory.
 - `tools.json` — the manifest.
 - `docs/adr/` — the decisions, and the alternatives already rejected.
 - `docs/setup/` — the manual and post-install steps.
@@ -120,6 +137,8 @@ why; check them before "fixing" one.
 
 ## Removing
 
+Link mode:
+
 ```sh
 stow --dir <repo>/modules --target ~ --delete <module>
 ```
@@ -127,3 +146,9 @@ stow --dir <repo>/modules --target ~ --delete <module>
 This reverses the symlinks only. It never removes packages — uninstalling system
 software is destructive and is not what "remove your dotfiles" means. Any `.bak`
 files are left alone, so restoring them stays a deliberate act.
+
+Copy mode has no undo: the files are yours, and deleting them is your business.
+That is the trade you made when you chose it.
+
+Moving the repository is an unstow here, a move, then a fresh install — the
+symlinks encode the old path and nothing repairs them in place.
