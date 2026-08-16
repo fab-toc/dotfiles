@@ -10,6 +10,7 @@
 [core]
   compression = 9
   preloadIndex = true
+  whitespace = blank-at-eol,space-before-tab,tab-in-indent,blank-at-eof
   # fsmonitor = true
   # untrackedCache = true
 
@@ -97,6 +98,9 @@
 
 [column]
   ui = auto
+
+[apply]
+  whitespace = error
 
 
 # ===========================

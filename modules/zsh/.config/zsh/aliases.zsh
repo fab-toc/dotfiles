@@ -32,6 +32,7 @@ alias grep="grep --color=auto"
 alias diff="diff --color=auto"
 alias df="df -h"
 
+
 # ===========================
 # Package Manager
 # ===========================
@@ -52,6 +53,7 @@ elif command -v apt >/dev/null; then
   alias u="sudo apt update"
 fi
 
+
 # ===========================
 # File Listing
 # ===========================
@@ -65,60 +67,49 @@ else
   alias la="ls -lah"
 fi
 
+
 # ===========================
 # neovim
 # ===========================
 command -v nvim >/dev/null && alias v="nvim"
 
-# ===========================
-# fastfetch
-# ===========================
-command -v fastfetch >/dev/null && alias ff="fastfetch"
-
-# ===========================
-# systemd
-# ===========================
-command -v systemctl >/dev/null && alias ctl="systemctl"
 
 # ===========================
 # docker
 # ===========================
-alias docker-clean=' \
-  docker container prune -f ; \
-  docker image prune -f ; \
-  docker network prune -f ; \
-  docker volume prune -f '
-
 alias sd="systemctl start containerd.service docker.service"
+
 
 # ===========================
 # git
 # ===========================
 alias g="git"
 
-alias gi="git init"
 alias gcl="git clone"
+alias gi="git init"
 
+alias gco="git checkout"
+alias gb="git branch"
 alias gs="git status"
+alias gd="git diff"
 
 alias ga="git add"
 alias gaa="git add --all"
 alias gap="git add --patch"
-alias gc="git commit"
 
 alias gl="git log --all --graph --pretty=format:'%C(magenta)%h %C(white) %an  %ar%C(auto)  %D%n%s%n'"
-alias gb="git branch"
-alias gco="git checkout"
-alias gd="git diff --output-indicator-new=' ' --output-indicator-old=' '"
+alias gc="git commit"
 
 alias gf="git fetch"
 alias gp="git push"
 alias gu="git pull"
 
+
 # ===========================
 # GitHub
 # ===========================
 alias gh-create="gh repo create --private --source=. --remote=origin && git push -u --all && gh browse"
+
 
 # ===========================
 # pnpm
